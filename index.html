@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malena &amp; Fer · Nuestra Boda</title>
+  <meta name="description" content="Acompáñanos el 18 de septiembre de 2027 en nuestra boda. Nuestra historia, horarios, mapa interactivo, hoteles y confirmación de asistencia.">
+
+  <!-- Open Graph para previsualización elegante en WhatsApp -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Malena &amp; Fer · 18 de septiembre de 2027">
+  <meta property="og:description" content="Abre el sobre de nuestra invitación interactiva: nuestra historia, horarios, mapa de hoteles y confirma tu asistencia.">
+  <meta property="og:image" content="assets/images/scene-1-comienzo.jpg">
+
+  <!-- Favicon editorial inline -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%234A5A42' stroke='%23C5A059' stroke-width='2.5'/%3E%3Ctext x='32' y='40' text-anchor='middle' font-family='Georgia,serif' font-size='22' fill='%23FAF7F2'%3EM%26F%3C/text%3E%3C/svg%3E">
+
+  <!-- Tipografías Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Estilos propios -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="envelope-locked">
+
+  <!-- ======================================================================
+       1. SOBRE REAL PLEGADO CON SELLO DE LACRE EN LA SOLAPA
+       ====================================================================== -->
+  <div id="intro-overlay" class="intro-overlay" role="dialog" aria-modal="true" aria-labelledby="intro-couple">
+    <div class="envelope-backdrop"></div>
+
+    <div class="envelope-scene">
+      <p class="envelope-top-note">Invitación Oficial</p>
+
+      <div id="envelope-wrapper" class="envelope-wrapper">
+        <div class="envelope-back" aria-hidden="true"></div>
+
+        <!-- Tarjeta interior que emerge al abrir el sobre -->
+        <div class="envelope-letter">
+          <div class="envelope-letter-frame">
+            <p class="intro-eyebrow">¡Nos casamos!</p>
+            <h1 id="intro-couple" class="intro-couple">Malena &amp; Fer</h1>
+            <p id="intro-tagline" class="intro-tagline">Con toda la ilusión del mundo, os invitamos a celebrar nuestra boda.</p>
+            <p id="intro-date" class="intro-date">18 de septiembre de 2027</p>
+            <p id="intro-location" class="intro-location">Finca El Olivar · Murcia</p>
+            <div class="envelope-read-progress" aria-hidden="true">
+              <div id="envelope-read-bar" class="envelope-read-bar"></div>
+            </div>
+            <button id="envelope-continue-btn" class="envelope-continue-btn" type="button">
+              Entrar a la web →
+            </button>
+          </div>
+        </div>
+
+        <!-- Bolsillo frontal del sobre (pliegues izquierdo, derecho e inferior) -->
+        <div class="envelope-pocket" aria-hidden="true">
+          <div class="envelope-fold-left"></div>
+          <div class="envelope-fold-right"></div>
+          <div class="envelope-fold-bottom"></div>
+        </div>
+
+        <!-- Solapa triangular superior que se abre hacia arriba en 3D -->
+        <div class="envelope-flap-top" aria-hidden="true">
+          <div class="envelope-flap-surface"></div>
+        </div>
+
+        <!-- Sello de lacre en la punta de la solapa -->
+        <button id="open-envelope-btn" class="wax-seal-btn" type="button" aria-label="Pulsar sello de lacre para abrir la invitación">
+          <span class="wax-seal-ring" aria-hidden="true"></span>
+          <span class="wax-seal-core">
+            <span id="intro-monogram" class="wax-monogram">M&amp;F</span>
+          </span>
+        </button>
+      </div>
+
+      <p class="intro-hint">Pulsa sobre el sello de lacre para abrir el sobre</p>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       2. BARRA DE NAVEGACIÓN EDITORIAL STICKY
+       ====================================================================== -->
+  <header id="site-nav" class="site-nav">
+    <div class="nav-inner">
+      <a href="#historia-cinema" id="nav-monogram" class="nav-brand">M &amp; F</a>
+
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a href="#historia-cinema">Historia</a>
+        <a href="#cuenta-atras">Fecha</a>
+        <a href="#programa">El Gran Día</a>
+        <a href="#lugar-hoteles">Mapa y Hoteles</a>
+        <a href="#info-util">Info Útil</a>
+        <a href="#rsvp" class="nav-cta">Confirmar</a>
+      </nav>
+
+      <button id="nav-menu-toggle" class="nav-burger" type="button" aria-label="Abrir menú" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <div id="nav-drawer" class="nav-drawer" aria-hidden="true">
+      <a href="#historia-cinema">Nuestra Historia</a>
+      <a href="#cuenta-atras">Cuenta Atrás</a>
+      <a href="#programa">El Gran Día</a>
+      <a href="#lugar-hoteles">Mapa y Hoteles</a>
+      <a href="#info-util">Info Útil</a>
+      <a href="#rsvp" class="nav-drawer-cta">Confirmar Asistencia</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ====================================================================
+         3. VIDEO-SCROLL CINEMATOGRÁFICO INTERACTIVO (SCRUBBING CON SCROLL)
+         ==================================================================== -->
+    <section id="historia-cinema" class="cinema-section" aria-label="Historia de Malena y Fer">
+      <div class="cinema-track">
+        <div class="cinema-stage">
+          <!-- Capas de fondo para modo 'storyboard' -->
+          <div id="cinema-bg-layers" class="cinema-bg-layers" aria-hidden="true"></div>
+
+          <!-- Canvas para modo 'video-frames' (secuencia de frames) -->
+          <canvas id="cinema-video-canvas" class="cinema-media-layer is-hidden" aria-hidden="true"></canvas>
+
+          <!-- Vídeo directo para modo 'video-direct' -->
+          <video id="cinema-video-el" class="cinema-media-layer is-hidden" muted playsinline preload="auto" aria-hidden="true"></video>
+
+          <!-- Veladura cinematográfica editorial -->
+          <div class="cinema-scrim" aria-hidden="true"></div>
+
+          <!-- Partículas doradas y destellos reactivos al scroll -->
+          <canvas id="cinema-particles" class="cinema-particles" aria-hidden="true"></canvas>
+
+          <!-- Trazo botánico dorado dibujado con el scroll -->
+          <svg class="cinema-gold-svg" viewBox="0 0 1440 800" preserveAspectRatio="none" aria-hidden="true">
+            <path
+              id="cinema-gold-thread"
+              d="M -40 620 C 260 520, 420 710, 720 420 C 980 170, 1180 340, 1490 150"
+              fill="none"
+              stroke="rgba(229, 200, 134, 0.38)"
+              stroke-width="1.6"
+              stroke-linecap="round"
+            />
+          </svg>
+
+          <!-- Contenido narrativo por capítulos -->
+          <div id="cinema-chapters" class="cinema-chapters"></div>
+
+          <!-- Velo crema progresivo para fundir el final del vídeo-scroll con la siguiente sección -->
+          <div id="cinema-exit-veil" class="cinema-exit-veil" aria-hidden="true"></div>
+
+          <!-- HUD inferior del video-scroll -->
+          <div class="cinema-hud">
+            <div class="cinema-progress-wrap" aria-hidden="true">
+              <div id="cinema-progress-fill" class="cinema-progress-fill"></div>
+            </div>
+
+            <div class="cinema-hud-row">
+              <div id="cinema-dots" class="cinema-dots" role="tablist" aria-label="Capítulos de la historia"></div>
+
+              <div class="cinema-hud-actions">
+                <span class="cinema-scroll-cue">
+                  <span class="cinema-scroll-mouse" aria-hidden="true"></span>
+                  Desliza para vivir nuestra historia
+                </span>
+                <button id="cinema-skip-btn" class="cinema-skip-btn" type="button">
+                  Ir al programa ↓
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         4. CUENTA ATRÁS INTERACTIVA + GUARDAR EN CALENDARIO
+         ==================================================================== -->
+    <section id="cuenta-atras" class="section countdown-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span class="eyebrow">Cuenta atrás hacia el «sí, quiero»</span>
+          <h2 class="section-title">Falta muy poco para brindar juntos</h2>
+          <p class="section-subtitle">Toca cualquier número para lanzar arroz de la suerte.</p>
+        </div>
+
+        <div id="countdown-grid" class="countdown-grid reveal-on-scroll">
+          <button class="countdown-card" type="button" data-unit="days">
+            <span id="cd-days" class="countdown-value">000</span>
+            <span class="countdown-label">Días</span>
+          </button>
+          <button class="countdown-card" type="button" data-unit="hours">
+            <span id="cd-hours" class="countdown-value">00</span>
+            <span class="countdown-label">Horas</span>
+          </button>
+          <button class="countdown-card" type="button" data-unit="mins">
+            <span id="cd-mins" class="countdown-value">00</span>
+            <span class="countdown-label">Minutos</span>
+          </button>
+          <button class="countdown-card" type="button" data-unit="secs">
+            <span id="cd-secs" class="countdown-value">00</span>
+            <span class="countdown-label">Segundos</span>
+          </button>
+        </div>
+
+        <p id="countdown-quip" class="countdown-quip">
+          Tiempo oficial restante para encontrar el traje perfecto o ensayar vuestro mejor paso de baile.
+        </p>
+
+        <div class="calendar-actions reveal-on-scroll">
+          <a id="btn-google-cal" class="btn btn-outline" href="#" target="_blank" rel="noopener noreferrer">
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="17" rx="2"/>
+              <path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            Añadir a Google Calendar
+          </a>
+          <button id="btn-ics-cal" class="btn btn-gold" type="button">
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+              <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
+            </svg>
+            Descargar fecha (.ics Apple / Outlook)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         5. EL GRAN DÍA · LÍNEA TEMPORAL INTERACTIVA
+         ==================================================================== -->
+    <section id="programa" class="section schedule-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span id="schedule-eyebrow" class="eyebrow">Programa del 18 de septiembre</span>
+          <h2 class="section-title">El Gran Día, hora a hora</h2>
+          <p class="section-subtitle">Todo ocurre en la misma finca, para que solo os preocupéis de disfrutar.</p>
+        </div>
+
+        <div class="timeline-wrapper">
+          <div class="timeline-spine" aria-hidden="true">
+            <div id="timeline-spine-fill" class="timeline-spine-fill"></div>
+          </div>
+          <div id="timeline-list" class="timeline-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         6. UBICACIÓN, MAPA INTERACTIVO SOBRE GOOGLE MAPS Y HOTELES
+         ==================================================================== -->
+    <section id="lugar-hoteles" class="section map-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span class="eyebrow">Cómo llegar y dónde descansar</span>
+          <h2 class="section-title">La Finca, Autobuses y Hoteles</h2>
+          <p class="section-subtitle">
+            Explora la finca, la parada de autobús y los hoteles directamente sobre Google Maps.
+          </p>
+        </div>
+
+        <!-- Barra de filtros y capa Mapa / Satélite sobre Google Maps -->
+        <div class="map-toolbar reveal-on-scroll">
+          <div id="map-filters" class="map-filters" role="group" aria-label="Filtros de ubicaciones">
+            <button class="filter-pill is-active" type="button" data-filter="all">Todos los puntos</button>
+            <button class="filter-pill" type="button" data-filter="venue">Ceremonia y Finca</button>
+            <button class="filter-pill" type="button" data-filter="hotel">Hoteles</button>
+            <button class="filter-pill" type="button" data-filter="bus">Parada de Autobús</button>
+          </div>
+
+          <div id="map-type-switch" class="map-type-switch" role="group" aria-label="Vista del mapa">
+            <button class="mode-tab is-active" type="button" data-map-type="m">Mapa</button>
+            <button class="mode-tab" type="button" data-map-type="h">Satélite</button>
+          </div>
+        </div>
+
+        <!-- Contenedor interactivo sobre Google Maps -->
+        <div class="map-frame reveal-on-scroll">
+          <div id="gmaps-embed-wrap" class="gmaps-embed-wrap">
+            <div id="gmaps-quick-places" class="gmaps-quick-places" role="tablist" aria-label="Ubicaciones en el mapa"></div>
+
+            <div class="gmaps-viewport">
+              <iframe
+                id="gmaps-iframe"
+                class="gmaps-iframe"
+                title="Mapa interactivo en Google Maps"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen
+              ></iframe>
+
+              <!-- Tarjeta interactiva flotante sobre Google Maps -->
+              <div id="map-overlay-card" class="map-overlay-card">
+                <span id="map-card-badge" class="map-card-badge">Ceremonia, Cóctel y Banquete</span>
+                <h3 id="map-card-title" class="map-card-title">Finca El Olivar</h3>
+                <p id="map-card-address" class="map-card-address"></p>
+                <p id="map-card-meta" class="map-card-meta"></p>
+                <div class="map-card-actions">
+                  <button id="map-card-promo" class="btn btn-outline btn-sm is-hidden" type="button"></button>
+                  <a id="map-card-gps" class="btn btn-gold btn-sm" href="#" target="_blank" rel="noopener noreferrer">Cómo llegar (GPS)</a>
+                  <a id="map-card-route-venue" class="btn btn-outline btn-sm is-hidden" href="#" target="_blank" rel="noopener noreferrer">Ruta hasta la Finca</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjetas de Finca y Autobús -->
+        <div id="venue-cards" class="venues-grid"></div>
+
+        <!-- Subtítulo Hoteles -->
+        <div class="subsection-header reveal-on-scroll">
+          <h3>Alojamientos recomendados con tarifa de invitados</h3>
+          <p>Pulsa en el código promocional para copiarlo antes de reservar.</p>
+        </div>
+
+        <!-- Tarjetas de Hoteles -->
+        <div id="hotel-cards" class="hotels-grid"></div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         7. INFORMACIÓN ÚTIL (DRESS CODE, AUTOBUSES, REGALO)
+         ==================================================================== -->
+    <section id="info-util" class="section info-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span class="eyebrow">Pequeños detalles</span>
+          <h2 class="section-title">Todo lo que necesitas saber</h2>
+        </div>
+
+        <div class="info-grid">
+          <!-- Tarjeta 1: Dress Code + Easter Egg color blanco -->
+          <article class="info-card reveal-on-scroll">
+            <div class="info-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 3l2.2 5.2L19.5 9l-4 3.8.9 5.5L12 15.8l-4.4 2.5.9-5.5-4-3.8 5.3-.8L12 3z"/>
+              </svg>
+            </div>
+            <h3 id="dresscode-title">Etiqueta &amp; Dress Code</h3>
+            <p id="dresscode-subtitle" class="info-card-kicker"></p>
+            <p id="dresscode-desc" class="info-card-body"></p>
+            <div id="dresscode-swatches" class="swatch-row"></div>
+            <p id="dresscode-avoid" class="info-card-note"></p>
+          </article>
+
+          <!-- Tarjeta 2: Autobuses y Parking -->
+          <article class="info-card reveal-on-scroll">
+            <div class="info-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="4" y="4" width="16" height="13" rx="3"/>
+                <path d="M4 11h16M8 17v2M16 17v2M7.5 14h.01M16.5 14h.01"/>
+              </svg>
+            </div>
+            <h3 id="transport-title">Autobuses &amp; Parking</h3>
+            <p id="transport-subtitle" class="info-card-kicker"></p>
+            <ul id="bus-schedule-list" class="bus-list"></ul>
+            <p id="parking-note" class="info-card-body"></p>
+            <button id="btn-bus-map" class="btn btn-outline btn-sm" type="button">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                <path d="M12 21s-6-5.3-6-10a6 6 0 1112 0c0 4.7-6 10-6 10z"/>
+                <circle cx="12" cy="11" r="2.2"/>
+              </svg>
+              Ver parada en el mapa
+            </button>
+          </article>
+
+          <!-- Tarjeta 3: Regalo / IBAN -->
+          <article class="info-card reveal-on-scroll">
+            <div class="info-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 3L3 10.5l7.2 2.8L13.5 21 21 3zM10.2 13.3L21 3"/>
+              </svg>
+            </div>
+            <h3 id="gift-title">Luna de Miel</h3>
+            <p id="gift-subtitle" class="info-card-kicker"></p>
+            <p id="gift-desc" class="info-card-body"></p>
+            <div class="iban-box">
+              <code id="gift-iban-display" class="iban-code">ES21 •••• •••• ••••</code>
+              <button id="btn-copy-iban" class="btn btn-gold btn-sm" type="button">
+                Copiar IBAN
+              </button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         8. CUESTIONARIO RSVP INTERACTIVO (BOTÓN "NO" FUGITIVO + PASE VIP)
+         ==================================================================== -->
+    <section id="rsvp" class="section rsvp-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span class="eyebrow">Confirma tu asistencia</span>
+          <h2 class="section-title">¿Nos acompañas en nuestro gran día?</h2>
+          <p id="rsvp-deadline" class="section-subtitle"></p>
+        </div>
+
+        <!-- Aviso discreto cuando backendMode === 'demo' -->
+        <div id="rsvp-demo-banner" class="demo-banner is-hidden" role="status">
+          <strong>Modo Demo activo:</strong> Puedes probar toda la experiencia (incluido el botón «No» fugitivo y tu Pase VIP). Para recibir las respuestas reales en Google Sheets o Google Forms, configura <code>js/config.js</code> siguiendo el <code>README.md</code>.
+        </div>
+
+        <!-- PASO A: Arena interactiva de decisión Sí / No -->
+        <div id="rsvp-arena" class="rsvp-arena reveal-on-scroll">
+          <div id="rsvp-arena-header" class="arena-header">
+            <p class="arena-prompt">Elige con el corazón (y con el estómago):</p>
+            <span class="arena-dog-hint">Nuestros dos peludos vigilan abajo... ¡puedes acariciarlos! 🐾</span>
+          </div>
+
+          <div class="arena-stage">
+            <button id="btn-rsvp-yes" class="btn-rsvp-yes" type="button">
+              ¡Sí, allí estaré! 🥂
+            </button>
+
+            <button id="btn-rsvp-no" class="btn-rsvp-no" type="button">
+              No podré asistir
+            </button>
+          </div>
+        </div>
+
+        <!-- PASO B: Wizard de 1 pregunta por pantalla -->
+        <form id="rsvp-form-yes" class="rsvp-form-card is-hidden" novalidate>
+          <div class="form-card-top">
+            <div>
+              <span id="wizard-step-label" class="form-badge">Pregunta 1 de 9</span>
+              <h3>Tu tarjeta de invitado</h3>
+            </div>
+            <button id="btn-back-arena-yes" class="btn-link" type="button">← Cambiar decisión</button>
+          </div>
+
+          <div class="wizard-progress-track" aria-hidden="true">
+            <div id="wizard-progress-fill" class="wizard-progress-fill"></div>
+          </div>
+
+          <!-- Pantallas individuales (1 pregunta por pantalla) -->
+          <div id="wizard-screens" class="wizard-screens">
+            <!-- Pregunta 1: Nombre y contacto -->
+            <div class="wizard-screen is-active" data-step="1">
+              <h4 class="wizard-question-title">¿Cómo te llamas y dónde te escribimos?</h4>
+              <p class="wizard-question-sub">Así podremos guardarte tu sitio y enviarte tu Pase VIP.</p>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="guest-name">Nombre y apellidos *</label>
+                  <input id="guest-name" name="name" type="text" required placeholder="Ej. Laura Gómez Sánchez" autocomplete="name">
+                </div>
+                <div class="field">
+                  <label for="guest-email">Email o teléfono *</label>
+                  <input id="guest-email" name="email" type="text" required placeholder="Para enviarte tu confirmación" autocomplete="email">
+                </div>
+              </div>
+            </div>
+
+            <!-- Pregunta 2: Acompañante (+1) -->
+            <div class="wizard-screen" data-step="2">
+              <h4 class="wizard-question-title">¿Vienes solo/a o con acompañante?</h4>
+              <p class="wizard-question-sub">Si vienes en pareja o con +1, dinos su nombre para preparar su menú.</p>
+              <div class="field-block">
+                <div class="segmented-control">
+                  <button id="plus-one-no" class="seg-btn is-active" type="button" data-plusone="false">Voy solo/a</button>
+                  <button id="plus-one-yes" class="seg-btn" type="button" data-plusone="true">Sí, con acompañante (+1)</button>
+                </div>
+              </div>
+              <div id="plus-one-drawer" class="plus-one-drawer is-hidden">
+                <div class="field">
+                  <label for="plus-one-name">Nombre completo de tu acompañante *</label>
+                  <input id="plus-one-name" name="plusOneName" type="text" placeholder="Ej. Carlos Ruiz">
+                </div>
+              </div>
+            </div>
+
+            <!-- Pregunta 3: Niños / Peques -->
+            <div class="wizard-screen" data-step="3">
+              <h4 class="wizard-question-title">¿Vienen niños con vosotros?</h4>
+              <p class="wizard-question-sub">Si venís con uno o más peques, añádelos aquí para prepararles su menú infantil o trona.</p>
+              <div class="field-block">
+                <div class="segmented-control">
+                  <button id="children-no" class="seg-btn is-active" type="button" data-children="false">No, sin niños</button>
+                  <button id="children-yes" class="seg-btn" type="button" data-children="true">Sí, vienen niños</button>
+                </div>
+              </div>
+
+              <div id="children-drawer" class="children-drawer is-hidden">
+                <div class="children-stepper-row">
+                  <span class="children-stepper-label">Número de niños</span>
+                  <div class="children-stepper" role="group" aria-label="Número de niños">
+                    <button id="btn-children-minus" class="stepper-btn" type="button" aria-label="Quitar un niño">−</button>
+                    <strong id="children-count-value" class="stepper-value">1</strong>
+                    <button id="btn-children-plus" class="stepper-btn" type="button" aria-label="Añadir un niño">+</button>
+                  </div>
+                </div>
+
+                <div id="children-list" class="children-list"></div>
+
+                <button id="btn-add-child" class="btn btn-outline btn-sm children-add-btn" type="button">
+                  + Añadir otro niño/a
+                </button>
+              </div>
+            </div>
+
+            <!-- Pregunta 4: Plato principal -->
+            <div class="wizard-screen" data-step="4">
+              <h4 class="wizard-question-title">Hora de elegir el plato principal</h4>
+              <p class="wizard-question-sub">Prometemos que todo estará espectacular (y nuestros perros no lo catarán antes).</p>
+              <div class="field-block">
+                <label class="field-label-block">Tu plato principal *</label>
+                <div id="menu-grid" class="menu-grid"></div>
+              </div>
+              <div id="plus-one-menu-wrap" class="field-block is-hidden">
+                <label class="field-label-block">Plato principal para tu acompañante *</label>
+                <div id="plus-one-menu-grid" class="menu-grid"></div>
+              </div>
+              <p id="children-menu-summary" class="field-fun-note is-hidden"></p>
+            </div>
+
+            <!-- Pregunta 5: Alergias o intolerancias -->
+            <div class="wizard-screen" data-step="5">
+              <h4 class="wizard-question-title">¿Alergias, intolerancias o dieta especial?</h4>
+              <p class="wizard-question-sub">Toca una opción rápida o escríbelo con total tranquilidad (incluyendo si algún peque tiene alergias).</p>
+              <div class="field-block">
+                <div id="allergy-chips" class="chips-row"></div>
+                <input id="guest-allergies" name="allergies" type="text" placeholder="Ej. Celíaco, intolerante a los frutos secos, o ninguna...">
+                <p id="allergy-reaction" class="field-fun-note is-hidden"></p>
+              </div>
+            </div>
+
+            <!-- Pregunta 6: Autobús lanzadera -->
+            <div class="wizard-screen" data-step="6">
+              <h4 class="wizard-question-title">¿Te reservamos plaza en el autobús?</h4>
+              <p class="wizard-question-sub">Ida desde Plaza Circular (Murcia) y regreso a la 01:30 h o 03:00 h.</p>
+              <input id="bus-needed" name="bus" type="checkbox" class="is-hidden">
+              <div class="bus-choice-grid">
+                <button id="bus-choice-yes" class="bus-choice-card" type="button">
+                  <strong>Sí, quiero autobús 🚌</strong>
+                  <small>Me olvido del coche y brindo sin preocuparme de la vuelta.</small>
+                </button>
+                <button id="bus-choice-no" class="bus-choice-card is-selected" type="button">
+                  <strong>No, iré por mi cuenta</strong>
+                  <small>Llego en coche propio (hay parking gratuito en la finca).</small>
+                </button>
+              </div>
+            </div>
+
+            <!-- Pregunta 7: Nivel de Barra Libre -->
+            <div class="wizard-screen" data-step="7">
+              <h4 class="wizard-question-title">¿Cuál es tu compromiso con la Barra Libre?</h4>
+              <p class="wizard-question-sub">Desliza del 1 al 5 con sinceridad absoluta.</p>
+              <div class="field-block party-meter-box">
+                <div class="party-meter-head">
+                  <label for="party-slider">Nivel oficial de fiesta *</label>
+                  <span id="party-emoji" class="party-emoji">🕺</span>
+                </div>
+                <input id="party-slider" name="partyLevel" type="range" min="1" max="5" step="1" value="3">
+                <div class="party-ticks" aria-hidden="true">
+                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                </div>
+                <div class="party-readout">
+                  <strong id="party-title">Rey / Reina de la Pista</strong>
+                  <p id="party-desc">Zapatos fuera a las 00:00 h y coreografía asegurada.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pregunta 8: Petición al DJ -->
+            <div class="wizard-screen" data-step="8">
+              <h4 class="wizard-question-title">¿Qué canción te saca a bailar sí o sí?</h4>
+              <p class="wizard-question-sub">Nuestros perros se la llevan directamente a la cabina del DJ.</p>
+              <div class="field-block dj-box">
+                <div class="dj-vinyl-wrap" aria-hidden="true">
+                  <div id="dj-vinyl" class="dj-vinyl">
+                    <div class="dj-vinyl-center">DJ</div>
+                  </div>
+                </div>
+                <div class="dj-input-wrap">
+                  <label for="dj-song">Petición obligatoria para el DJ</label>
+                  <input id="dj-song" name="song" type="text" placeholder="¿Con qué canción prometes no sentarte?">
+                  <p id="dj-reaction" class="dj-reaction">Escribe un temazo y el vinilo empezará a girar 🎶</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pregunta 9: Dedicatoria final -->
+            <div class="wizard-screen" data-step="9">
+              <h4 class="wizard-question-title">Unas palabras para Malena y Fer</h4>
+              <p class="wizard-question-sub">Dedicatoria, recuerdo bonito o consejo matrimonial para leer después del gran día.</p>
+              <div class="field">
+                <label for="guest-message">Tu mensaje (opcional)</label>
+                <textarea id="guest-message" name="message" rows="4" placeholder="Prometemos leerlo con una copa de vino después de la boda..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navegación del Wizard -->
+          <div class="wizard-nav">
+            <button id="btn-wizard-prev" class="btn btn-outline is-hidden" type="button">
+              ← Anterior
+            </button>
+            <button id="btn-wizard-next" class="btn btn-gold" type="button">
+              Siguiente →
+            </button>
+            <button id="btn-submit-yes" class="btn btn-gold btn-lg is-hidden" type="submit">
+              Confirmar y generar mi Pase VIP 🥂
+            </button>
+          </div>
+        </form>
+
+        <!-- PASO C: Formulario si NO ASISTE (tras los intentos sorpresa) -->
+        <form id="rsvp-form-no" class="rsvp-form-card rsvp-form-no is-hidden" novalidate>
+          <div class="form-card-top">
+            <div>
+              <span class="form-badge form-badge-muted">💔 Nos dará mucha pena no verte</span>
+              <h3>¡Eres duro/a de roer!</h3>
+            </div>
+            <button id="btn-change-mind" class="btn btn-gold btn-sm" type="button">
+              ¡Espera, sí voy! 🥂
+            </button>
+          </div>
+
+          <p class="form-no-intro">
+            Has superado la prueba de los botones esquivos. Déjanos tus datos para que sepamos quién nos faltará en el brindis (y prometemos guardarte un trozo de tarta virtual).
+          </p>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="no-guest-name">Tu nombre y apellidos *</label>
+              <input id="no-guest-name" name="name" type="text" required placeholder="Ej. Javier Torres">
+            </div>
+            <div class="field">
+              <label for="no-guest-email">Tu email *</label>
+              <input id="no-guest-email" name="email" type="email" required placeholder="tu@email.com">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="no-guest-message">Déjanos unas palabras (o una excusa muy convincente 😄)</label>
+            <textarea id="no-guest-message" name="message" rows="3" placeholder="¡Os deseo lo mejor! Nos vemos pronto..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button id="btn-submit-no" class="btn btn-outline btn-lg" type="submit">
+              Enviar respuesta lamentándolo mucho
+            </button>
+          </div>
+        </form>
+
+        <!-- PASO D: Tarjeta / Pase VIP tras confirmar -->
+        <div id="rsvp-vip-pass" class="vip-pass-wrap is-hidden">
+          <div class="vip-ticket">
+            <div class="vip-ticket-head">
+              <div>
+                <span class="vip-kicker">Pase Oficial de Invitado</span>
+                <h3 id="vip-couple-line">Malena &amp; Fer</h3>
+                <p id="vip-date-line">18 de septiembre de 2027 · Finca El Olivar</p>
+              </div>
+              <div id="vip-status-stamp" class="vip-stamp">CONFIRMADO</div>
+            </div>
+
+            <div class="vip-divider" aria-hidden="true"></div>
+
+            <div class="vip-ticket-body">
+              <div class="vip-guest-block">
+                <span class="vip-label">Invitado/a</span>
+                <p id="vip-guest-name" class="vip-guest-name">—</p>
+              </div>
+
+              <div id="vip-pass-details" class="vip-details-grid">
+                <div>
+                  <span class="vip-label">Menú elegido</span>
+                  <p id="vip-menu-value">—</p>
+                </div>
+                <div>
+                  <span class="vip-label">Nivel Barra Libre</span>
+                  <p id="vip-party-value">—</p>
+                </div>
+                <div>
+                  <span class="vip-label">Petición DJ</span>
+                  <p id="vip-song-value">—</p>
+                </div>
+                <div>
+                  <span class="vip-label">Código Pase</span>
+                  <p id="vip-code-value">MF-2027</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="vip-actions">
+            <button id="btn-download-vip" class="btn btn-gold" type="button">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
+              </svg>
+              Descargar mi Pase VIP (PNG)
+            </button>
+            <a id="btn-vip-gcal" class="btn btn-outline" href="#" target="_blank" rel="noopener noreferrer">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="17" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+              </svg>
+              Guardar en Google Calendar
+            </a>
+            <button id="btn-vip-ics" class="btn btn-outline" type="button">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                <rect x="5" y="2" width="14" height="20" rx="2"/>
+                <path d="M12 18h.01"/>
+              </svg>
+              Descargar .ics
+            </button>
+            <button id="btn-edit-rsvp" class="btn-link" type="button">
+              Editar mi respuesta
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Perros estilo Pixar animados en tiempo real durante el formulario -->
+      <div id="dogs-roaming-stage" class="dogs-roaming-stage is-hidden" aria-live="polite">
+        <div id="dog-actor-husky" class="dog-actor dog-actor--husky">
+          <div id="husky-bubble" class="dog-comic-bubble dog-comic-bubble--husky is-hidden"></div>
+          <button id="btn-pet-husky" class="dog-sprite-btn" type="button" aria-label="Acariciar al husky">
+            <div id="rig-actor-husky" class="dog-rig-host" aria-hidden="true"></div>
+          </button>
+        </div>
+
+        <div id="dog-actor-terrier" class="dog-actor dog-actor--terrier">
+          <div id="terrier-bubble" class="dog-comic-bubble dog-comic-bubble--terrier is-hidden"></div>
+          <button id="btn-pet-terrier" class="dog-sprite-btn" type="button" aria-label="Acariciar al perrito canela y blanco">
+            <div id="rig-actor-terrier" class="dog-rig-host" aria-hidden="true"></div>
+          </button>
+        </div>
+
+        <!-- Banner flotante mientras ambos perros galopan llevando la respuesta en la boca -->
+        <div id="global-courier-banner" class="global-courier-banner is-hidden">
+          <span id="global-courier-slip" class="courier-answer-slip"></span>
+          <span id="global-courier-caption" class="global-courier-caption"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======================================================================
+       FOOTER EDITORIAL
+       ====================================================================== -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div id="footer-monogram" class="footer-monogram">M &amp; F</div>
+      <p id="footer-couple" class="footer-couple">Malena &amp; Fer</p>
+      <p id="footer-date" class="footer-meta">18 de septiembre de 2027 · Finca El Olivar · Murcia</p>
+      <p id="footer-hashtag" class="footer-hashtag">#MalenaYFer2027</p>
+      <p class="footer-credit">Hecho con cariño para nuestros invitados favoritos</p>
+    </div>
+  </footer>
+
+  <!-- Contenedor de toasts y modal de Easter Egg -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <div id="easter-modal" class="easter-modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="easter-modal-title">
+    <div class="easter-modal-backdrop"></div>
+    <div class="easter-modal-card">
+      <h3 id="easter-modal-title">Alerta de Protocolo Nupcial</h3>
+      <p id="easter-modal-body"></p>
+      <button id="easter-modal-close" class="btn btn-gold" type="button">Entendido</button>
+    </div>
+  </div>
+
+  <!-- Canvas global para confeti, lluvia de arroz y destellos -->
+  <canvas id="global-particles" class="global-particles" aria-hidden="true"></canvas>
+
+  <!-- Scripts en orden estricto (compatibles con file:// y GitHub Pages) -->
+  <script src="js/config.js" defer></script>
+  <script src="js/particles.js" defer></script>
+  <script src="js/scroll-cinema.js" defer></script>
+  <script src="js/map.js" defer></script>
+  <script src="js/dog-rig-data.js" defer></script>
+  <script src="js/dog-animator.js" defer></script>
+  <script src="js/rsvp.js" defer></script>
+  <script src="js/easter-eggs.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
