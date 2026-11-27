@@ -3,7 +3,7 @@
 Web editorial interactiva lista para subir gratis a **GitHub Pages** (o **Cloudflare Pages**) y probar directamente en tu ordenador.
 
 Incluye:
-- Sobre real plegado con **sello de lacre en la solapa** y música ambiente activable.
+- Sobre real plegado con **lazo de seda y sello de lacre debajo** que se desata antes de extraer la invitación.
 - Sección **Video-Scroll cinematográfica** con la historia de Malena & Fer en 4 capítulos, partículas doradas y soporte para vídeo real o secuencia de fotogramas.
 - **Cuenta atrás interactiva** (toca los números para lanzar arroz de la suerte) + descarga directa a **Google Calendar** y archivo `.ics`.
 - **Programa del día** con línea temporal animada.

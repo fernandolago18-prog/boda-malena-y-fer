@@ -26,7 +26,7 @@
 <body class="envelope-locked">
 
   <!-- ======================================================================
-       1. SOBRE REAL PLEGADO CON SELLO DE LACRE EN LA SOLAPA
+       1. SOBRE REAL PLEGADO CON LAZO DE SEDA Y SELLO DE LACRE DEBAJO
        ====================================================================== -->
   <div id="intro-overlay" class="intro-overlay" role="dialog" aria-modal="true" aria-labelledby="intro-couple">
     <div class="envelope-backdrop"></div>
@@ -66,16 +66,21 @@
           <div class="envelope-flap-surface"></div>
         </div>
 
-        <!-- Sello de lacre en la punta de la solapa -->
-        <button id="open-envelope-btn" class="wax-seal-btn" type="button" aria-label="Pulsar sello de lacre para abrir la invitación">
-          <span class="wax-seal-ring" aria-hidden="true"></span>
+        <!-- Sello de lacre en la punta de la solapa (debajo del lazo) -->
+        <div id="envelope-wax-seal" class="wax-seal" role="button" tabindex="-1" aria-hidden="true">
           <span class="wax-seal-core">
             <span id="intro-monogram" class="wax-monogram">M&amp;F</span>
           </span>
-        </button>
-      </div>
+        </div>
 
-      <p class="intro-hint">Pulsa sobre el sello de lacre para abrir el sobre</p>
+        <!-- Lienzo de alta densidad con el lazo real tejido y física de desanudado -->
+        <div class="envelope-ribbon-layer" aria-hidden="true">
+          <canvas id="envelope-ribbon-canvas" class="envelope-ribbon-canvas"></canvas>
+        </div>
+
+        <!-- Área interactiva para tocar o tirar del extremo del lazo -->
+        <button id="open-envelope-btn" class="envelope-bow-btn" type="button" aria-label="Tocar o tirar del extremo del lazo para desatar y abrir la invitación"></button>
+      </div>
     </div>
   </div>
 
@@ -776,6 +781,7 @@
   <script src="js/dog-rig-data.js" defer></script>
   <script src="js/dog-animator.js" defer></script>
   <script src="js/rsvp.js" defer></script>
+  <script src="js/ribbon-bow.js" defer></script>
   <script src="js/easter-eggs.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>

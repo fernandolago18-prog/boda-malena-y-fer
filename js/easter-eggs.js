@@ -65,12 +65,14 @@
     document.body.removeChild(ta);
   }
 
-  /* 1. Sobre real con sello de lacre y lectura pausada de la invitación */
+  /* 1. Sobre real con lazo tejido en Canvas, sello de lacre debajo y lectura pausada */
   function setupEnvelope() {
     var overlay = document.getElementById('intro-overlay');
-    var sealBtn = document.getElementById('open-envelope-btn');
+    var bowBtn = document.getElementById('open-envelope-btn');
+    var ribbonCanvas = document.getElementById('envelope-ribbon-canvas');
+    var waxSeal = document.getElementById('envelope-wax-seal');
     var continueBtn = document.getElementById('envelope-continue-btn');
-    if (!overlay || !sealBtn) {
+    if (!overlay || !bowBtn) {
       document.body.classList.remove('envelope-locked');
       return;
     }
@@ -82,7 +84,11 @@
     var readMs = Math.max(2000, readSeconds * 1000);
     overlay.style.setProperty('--envelope-read-ms', readMs + 'ms');
 
-    var started = false;
+    var reducedMotion = Boolean(
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+
+    var unsealedStarted = false;
     var finished = false;
     var timers = [];
 
@@ -99,43 +105,74 @@
       }
     }
 
-    function openEnvelope() {
-      if (started) return;
-      started = true;
+    function runPostUntieSequence() {
+      if (unsealedStarted) return;
+      unsealedStarted = true;
 
-      var rect = sealBtn.getBoundingClientRect();
-      if (window.BodaParticles) {
-        window.BodaParticles.sparkles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      // Fase 2: Se despega y retira el sello de lacre situado debajo del lazo
+      if (waxSeal && window.BodaParticles) {
+        var sealRect = waxSeal.getBoundingClientRect();
+        window.BodaParticles.sparkles(
+          sealRect.left + sealRect.width / 2,
+          sealRect.top + sealRect.height / 2
+        );
       }
-
-      // Fase 1: Se rompe el sello de lacre
       overlay.classList.add('is-unsealing');
 
-      // Fase 2: La solapa superior se despliega lentamente en 3D
+      var dFlap = reducedMotion ? 110 : 480;
+      var dExtract = reducedMotion ? 240 : 1320;
+      var dRead = reducedMotion ? 380 : 2620;
+
+      // Fase 3: La solapa superior se despliega lentamente en 3D
       timers.push(
         setTimeout(function () {
           overlay.classList.add('is-flap-open');
-        }, 420)
+        }, dFlap)
       );
 
-      // Fase 3: La tarjeta de invitación sale suavemente del sobre hacia el centro
+      // Fase 4: La tarjeta de invitación sale suavemente del sobre hacia el centro
       timers.push(
         setTimeout(function () {
           overlay.classList.add('is-extracting');
-        }, 1250)
+        }, dExtract)
       );
 
-      // Fase 4: Permanece centrada y legible durante readMs (4.5 s por defecto)
+      // Fase 5: Permanece centrada y legible durante readMs (4.5 s por defecto)
       timers.push(
         setTimeout(function () {
           overlay.classList.add('is-reading');
-        }, 2550)
+        }, dRead)
       );
 
-      timers.push(setTimeout(finishEnvelope, 2550 + readMs));
+      timers.push(setTimeout(finishEnvelope, dRead + readMs));
     }
 
-    sealBtn.addEventListener('click', openEnvelope);
+    if (window.BodaRibbonBow && ribbonCanvas) {
+      var bowCtrl = window.BodaRibbonBow.attach({
+        canvas: ribbonCanvas,
+        triggerBtn: bowBtn,
+        onStartPull: function (coords) {
+          overlay.classList.add('is-untying');
+          if (window.BodaParticles && coords) {
+            window.BodaParticles.sparkles(coords.tailX, coords.tailY);
+          }
+        },
+        onUntied: runPostUntieSequence
+      });
+
+      if (waxSeal && bowCtrl) {
+        waxSeal.addEventListener('click', function () {
+          bowCtrl.untie();
+        });
+      }
+    } else {
+      // Respaldo por si el canvas no estuviera disponible
+      bowBtn.addEventListener('click', function () {
+        overlay.classList.add('is-untying');
+        runPostUntieSequence();
+      });
+    }
+
     if (continueBtn) {
       continueBtn.addEventListener('click', finishEnvelope);
     }
