@@ -241,10 +241,13 @@ a {
 .intro-overlay {
   position: fixed;
   inset: 0;
+  height: 100vh;
+  height: 100dvh;
   z-index: 1000;
   display: grid;
   place-items: center;
   padding: clamp(0.75rem, 3.5vw, 1.25rem);
+  overflow: hidden;
   touch-action: none;
   transition: opacity 0.75s ease, visibility 0.75s ease;
 }
@@ -288,36 +291,37 @@ a {
   width: 100%;
   aspect-ratio: 1.48 / 1;
   min-height: 270px;
-  -webkit-perspective: 1400px;
-  perspective: 1400px;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
+  /* Sin preserve-3d global: evita el bug de WebKit/iOS Safari donde las capas 3D atraviesan el bolsillo */
   box-shadow: 0 30px 70px rgba(35, 32, 28, 0.22);
   border-radius: 8px;
-  transition: transform 1.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 1.2s cubic-bezier(0.25, 0.9, 0.32, 1);
+  will-change: transform;
 }
 
+/* Cavidad interior sombreada del sobre (visible al levantarse la solapa superior) */
 .envelope-back {
   position: absolute;
   inset: 0;
-  background: linear-gradient(165deg, #EDE4D4 0%, #E3D7C4 100%);
+  z-index: 1;
+  background: linear-gradient(180deg, #D8C9B0 0%, #CBB99B 56%, #DFD2BC 100%);
+  box-shadow: inset 0 12px 26px rgba(35, 28, 18, 0.18);
   border-radius: 8px;
-  border: 1px solid rgba(197, 160, 89, 0.35);
+  border: 1px solid rgba(197, 160, 89, 0.42);
 }
 
 .envelope-letter {
   position: absolute;
   inset: 6% 6%;
-  z-index: 2;
+  z-index: 3;
   background: var(--bg-paper);
   border-radius: 6px;
-  border: 1px solid rgba(197, 160, 89, 0.45);
-  box-shadow: 0 8px 24px rgba(35, 32, 28, 0.12);
+  border: 1px solid rgba(197, 160, 89, 0.48);
+  box-shadow: 0 8px 24px rgba(35, 32, 28, 0.14);
   display: grid;
   place-items: center;
   padding: 1rem;
   text-align: center;
-  transition: transform 0.72s cubic-bezier(0.22, 1, 0.36, 1) 0.28s, box-shadow 0.5s ease;
+  will-change: transform;
 }
 
 .envelope-letter-frame {
@@ -418,7 +422,6 @@ a {
   position: absolute;
   inset: 0;
   z-index: 4;
-  transform: translateZ(0.5px);
   pointer-events: none;
   overflow: hidden;
   border-radius: 8px;
@@ -427,26 +430,33 @@ a {
 .envelope-fold-left {
   position: absolute;
   inset: 0;
-  background: #F6F0E5;
+  background: linear-gradient(115deg, #F8F2E8 0%, #EFE5D5 100%);
   clip-path: polygon(0 0, 52% 52%, 0 100%);
 }
 
 .envelope-fold-right {
   position: absolute;
   inset: 0;
-  background: #EFE7D9;
+  background: linear-gradient(245deg, #F3EBDD 0%, #E9DEC9 100%);
   clip-path: polygon(100% 0, 48% 52%, 100% 100%);
 }
 
 .envelope-fold-bottom {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #FAF5EC 0%, #F1E8D9 100%);
+  background: linear-gradient(180deg, #FBF6EE 0%, #EFE5D4 100%);
   clip-path: polygon(0 100%, 50% 45%, 100% 100%);
-  filter: drop-shadow(0 -3px 8px rgba(35, 32, 28, 0.08));
 }
 
-/* Solapa superior triangular */
+.envelope-pocket-creases {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Solapa superior triangular con doble cara (exterior + forro interior al abrirse en 3D) */
 .envelope-flap-top {
   position: absolute;
   top: 0;
@@ -454,32 +464,41 @@ a {
   right: 0;
   height: 60%;
   z-index: 6;
-  transform: translateZ(1px);
   transform-origin: top center;
-  -webkit-transform-style: preserve-3d;
-  transform-style: preserve-3d;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transition: transform 1.15s cubic-bezier(0.35, 0, 0.2, 1);
+  transform: perspective(1100px) rotateX(0deg);
   pointer-events: none;
   will-change: transform;
 }
 
-.envelope-flap-surface {
+.envelope-flap-front,
+.envelope-flap-lining {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, #FCF8F0 0%, #EDE3D1 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  border-top: 1px solid rgba(197, 160, 89, 0.4);
+}
+
+.envelope-flap-front {
+  background: linear-gradient(180deg, #FCF8F0 0%, #EAE0CC 100%);
+  border-top: 1px solid rgba(197, 160, 89, 0.42);
   box-shadow: inset 0 -12px 20px rgba(35, 32, 28, 0.07);
+  opacity: 1;
+}
+
+.envelope-flap-lining {
+  background:
+    linear-gradient(180deg, #EFE4CF 0%, #DFCFAF 100%);
+  border-top: 1px solid rgba(197, 160, 89, 0.5);
+  opacity: 0;
 }
 
 /* Sello de lacre situado debajo del lazo, sellando el vértice de la solapa */
 .wax-seal {
   position: absolute;
   left: 50%;
-  top: 61%;
-  transform: translate(-50%, -50%) translateZ(2px);
+  top: 60%;
+  transform: translate(-50%, -50%);
   z-index: 8;
   width: 82px;
   height: 82px;
@@ -527,7 +546,6 @@ a {
   position: absolute;
   inset: 0;
   z-index: 9;
-  transform: translateZ(3px);
   border-radius: 8px;
   overflow: hidden;
   pointer-events: none;
@@ -545,7 +563,7 @@ a {
   position: absolute;
   left: 50%;
   top: 47%;
-  transform: translate(-50%, -50%) translateZ(4px);
+  transform: translate(-50%, -50%);
   z-index: 10;
   width: min(290px, 66%);
   height: 56%;
@@ -591,55 +609,100 @@ a {
 }
 
 .intro-overlay.is-unsealing .wax-seal {
-  animation: liftWaxSealOff 0.78s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+  animation: liftWaxSealOff 0.72s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
   pointer-events: none;
 }
 
 @keyframes liftWaxSealOff {
   0% {
-    transform: translate(-50%, -50%) translateZ(2px) scale(1) rotate(0deg);
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
     opacity: 1;
   }
-  34% {
-    transform: translate(-50%, -62%) translateZ(10px) scale(1.13) rotate(-6deg);
+  36% {
+    transform: translate(-50%, -64%) scale(1.13) rotate(-6deg);
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, -30%) translateZ(14px) scale(0.9) rotate(15deg);
+    transform: translate(-50%, -32%) scale(0.88) rotate(14deg);
     opacity: 0;
   }
 }
 
-/* Fase 3: La solapa triangular se despliega en 3D */
-.intro-overlay.is-flap-open .envelope-flap-top {
-  transform: rotateX(180deg);
-  z-index: 1;
+/* Fase 3: La solapa triangular se despliega en 3D cambiando a su forro interior exactamente a 90° */
+.intro-overlay.is-flap-open .envelope-wrapper {
+  transform: translateY(10%);
 }
 
-/* Fase 4: El sobre baja ligeramente y emerge la invitación */
+.intro-overlay.is-flap-open .envelope-flap-top {
+  animation: foldEnvelopeFlap 1.12s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+.intro-overlay.is-flap-open .envelope-flap-front {
+  animation: swapFlapFront 1.12s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+.intro-overlay.is-flap-open .envelope-flap-lining {
+  animation: swapFlapLining 1.12s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+@keyframes foldEnvelopeFlap {
+  0% {
+    transform: perspective(1100px) rotateX(0deg);
+    z-index: 6;
+  }
+  49.9% {
+    z-index: 6;
+  }
+  50% {
+    transform: perspective(1100px) rotateX(90deg);
+    z-index: 2;
+  }
+  100% {
+    transform: perspective(1100px) rotateX(180deg);
+    z-index: 2;
+  }
+}
+
+@keyframes swapFlapFront {
+  0%, 49.9% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes swapFlapLining {
+  0%, 49.9% { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+/* Fase 4: El sobre baja suavemente y la tarjeta sale entera del bolsillo antes de posarse delante */
 .intro-overlay.is-extracting .envelope-wrapper {
-  transform: translateY(22%) scale(0.95);
+  transform: translateY(32%) scale(0.94);
 }
 
 .intro-overlay.is-extracting .envelope-letter {
-  animation: pullInvitationOut 1.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: pullInvitationOut 1.85s forwards;
 }
 
 @keyframes pullInvitationOut {
   0% {
     transform: translate3d(0, 0, 0) scale(1);
-    z-index: 2;
-  }
-  42% {
-    transform: translate3d(0, -104%, 2px) scale(1.03);
     z-index: 3;
+    box-shadow: 0 8px 24px rgba(35, 32, 28, 0.14);
+    animation-timing-function: cubic-bezier(0.36, 0.04, 0.24, 1);
   }
-  45% {
-    transform: translate3d(0, -102%, 14px) scale(1.05);
+  48% {
+    transform: translate3d(0, -109%, 0) scale(1.01);
+    z-index: 3;
+    box-shadow: 0 16px 36px rgba(35, 32, 28, 0.18);
+    animation-timing-function: linear;
+  }
+  50% {
+    transform: translate3d(0, -109%, 0) scale(1.02);
     z-index: 12;
+    box-shadow: 0 18px 42px rgba(35, 32, 28, 0.20);
+    animation-timing-function: cubic-bezier(0.30, 0, 0.20, 1);
   }
   100% {
-    transform: translate3d(0, -28%, 14px) scale(1.16);
+    transform: translate3d(0, -36%, 0) scale(1.14);
     z-index: 12;
     box-shadow: 0 32px 75px rgba(35, 32, 28, 0.28);
   }
@@ -1345,6 +1408,7 @@ a {
   box-shadow: var(--shadow-card);
   background: var(--bg-paper);
   margin-bottom: 2.25rem;
+  scroll-margin-top: 84px;
 }
 
 .gmaps-quick-places {
@@ -1372,6 +1436,11 @@ a {
   transition: all 0.2s ease;
 }
 
+.gmaps-place-btn svg,
+.gmaps-place-btn span {
+  pointer-events: none;
+}
+
 .gmaps-place-btn svg {
   width: 15px;
   height: 15px;
@@ -1394,6 +1463,7 @@ a {
 .gmaps-viewport {
   position: relative;
   width: 100%;
+  background: #E9E2D4;
 }
 
 .gmaps-iframe {
@@ -1401,6 +1471,11 @@ a {
   height: clamp(380px, 54vh, 520px);
   border: 0;
   display: block;
+  transition: opacity 0.24s ease;
+}
+
+.gmaps-iframe.is-loading {
+  opacity: 0.42;
 }
 
 .map-overlay-card {
@@ -3047,23 +3122,41 @@ a {
     padding-bottom: 3.25rem;
   }
 
-  @keyframes pullInvitationOut {
+  .intro-overlay.is-flap-open .envelope-wrapper {
+    transform: translateY(14%);
+  }
+
+  .intro-overlay.is-extracting .envelope-wrapper {
+    transform: translateY(38%) scale(0.92);
+  }
+
+  .intro-overlay.is-extracting .envelope-letter {
+    animation: pullInvitationOutMobile 1.85s forwards;
+  }
+
+  @keyframes pullInvitationOutMobile {
     0% {
       transform: translate3d(0, 0, 0) scale(1);
-      z-index: 2;
-    }
-    42% {
-      transform: translate3d(0, -92%, 2px) scale(1.02);
       z-index: 3;
+      box-shadow: 0 6px 18px rgba(35, 32, 28, 0.14);
+      animation-timing-function: cubic-bezier(0.36, 0.04, 0.24, 1);
     }
-    45% {
-      transform: translate3d(0, -90%, 14px) scale(1.04);
+    48% {
+      transform: translate3d(0, -108%, 0) scale(1.01);
+      z-index: 3;
+      box-shadow: 0 14px 32px rgba(35, 32, 28, 0.18);
+      animation-timing-function: linear;
+    }
+    50% {
+      transform: translate3d(0, -108%, 0) scale(1.02);
       z-index: 12;
+      box-shadow: 0 16px 36px rgba(35, 32, 28, 0.20);
+      animation-timing-function: cubic-bezier(0.30, 0, 0.20, 1);
     }
     100% {
-      transform: translate3d(0, -20%, 14px) scale(1.05);
+      transform: translate3d(0, -40%, 0) scale(1.08);
       z-index: 12;
-      box-shadow: 0 28px 65px rgba(35, 32, 28, 0.26);
+      box-shadow: 0 28px 65px rgba(35, 32, 28, 0.28);
     }
   }
 
@@ -3152,7 +3245,7 @@ a {
 
   .envelope-bow-btn:hover,
   .envelope-bow-btn:active {
-    transform: translate(-50%, -50%) translateZ(4px);
+    transform: translate(-50%, -50%);
   }
 
   .btn:active,
@@ -3221,53 +3314,59 @@ a {
     background: rgba(25, 22, 18, 0.62);
   }
 
-  /* Sobre: contenido de la invitación compacto para que quepa entero en pantallas pequeñas */
+  /* Sobre: proporción real y encuadre centrado para abrir la solapa y extraer la tarjeta sin cortes */
+  .envelope-scene {
+    width: min(364px, 91vw);
+    gap: 0.85rem;
+  }
+
   .envelope-wrapper {
-    aspect-ratio: 1.22 / 1;
-    min-height: 282px;
+    aspect-ratio: 1.35 / 1;
+    min-height: 0;
   }
 
   .envelope-letter {
-    inset: 5% 5%;
-    padding: 0.5rem;
+    inset: 5% 4.5%;
+    padding: 0.42rem;
   }
 
   .envelope-letter-frame {
-    padding: 0.45rem 0.5rem;
+    padding: 0.42rem 0.5rem;
   }
 
   .intro-eyebrow {
-    margin-bottom: 0.15rem;
-    font-size: 0.66rem;
+    margin-bottom: 0.1rem;
+    font-size: 0.62rem;
   }
 
   .intro-couple {
-    font-size: clamp(1.95rem, 9.5vw, 2.45rem);
+    font-size: clamp(1.82rem, 8.6vw, 2.25rem);
+    line-height: 1.08;
   }
 
   .intro-tagline {
-    font-size: 0.81rem;
-    margin: 0.18rem auto 0.3rem;
-    line-height: 1.3;
+    font-size: 0.78rem;
+    margin: 0.14rem auto 0.24rem;
+    line-height: 1.28;
   }
 
   .intro-date {
-    font-size: 1.02rem;
-    margin: 0.22rem 0 0.1rem;
+    font-size: 0.96rem;
+    margin: 0.16rem 0 0.08rem;
   }
 
   .intro-location {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
   }
 
   .envelope-read-progress {
-    margin-top: 0.45rem;
+    margin-top: 0.38rem;
   }
 
   .envelope-continue-btn {
-    margin-top: 0.42rem;
-    padding: 0.38rem 0.9rem;
-    font-size: 0.75rem;
+    margin-top: 0.34rem;
+    padding: 0.34rem 0.85rem;
+    font-size: 0.73rem;
   }
 
   .envelope-bow-btn {
@@ -3276,18 +3375,18 @@ a {
   }
 
   .wax-seal {
-    top: 62%;
-    width: 68px;
-    height: 68px;
+    top: 60%;
+    width: 66px;
+    height: 66px;
   }
 
   .wax-seal-core {
-    width: 60px;
-    height: 60px;
+    width: 58px;
+    height: 58px;
   }
 
   .wax-monogram {
-    font-size: 1.02rem;
+    font-size: 1rem;
   }
 
   /* Revelado suave y apreciable en pantallas de alta tasa de refresco (120Hz ProMotion) */

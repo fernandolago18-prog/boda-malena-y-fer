@@ -119,9 +119,9 @@
       }
       overlay.classList.add('is-unsealing');
 
-      var dFlap = 680;
-      var dExtract = 1680;
-      var dRead = 3250;
+      var dFlap = 540;
+      var dExtract = 1520;
+      var dRead = 3400;
 
       // Fase 3: La solapa superior se despliega lentamente en 3D
       timers.push(

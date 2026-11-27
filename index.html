@@ -59,11 +59,16 @@
           <div class="envelope-fold-left"></div>
           <div class="envelope-fold-right"></div>
           <div class="envelope-fold-bottom"></div>
+          <svg class="envelope-pocket-creases" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <polyline points="0,0 50,52 100,0" fill="none" stroke="rgba(157, 121, 53, 0.32)" stroke-width="0.65"/>
+            <polyline points="0,100 50,45 100,100" fill="none" stroke="rgba(157, 121, 53, 0.28)" stroke-width="0.6"/>
+          </svg>
         </div>
 
-        <!-- Solapa triangular superior que se abre hacia arriba en 3D -->
+        <!-- Solapa triangular superior que se abre hacia arriba en 3D (cara exterior + forro interior) -->
         <div class="envelope-flap-top" aria-hidden="true">
-          <div class="envelope-flap-surface"></div>
+          <div class="envelope-flap-front"></div>
+          <div class="envelope-flap-lining"></div>
         </div>
 
         <!-- Sello de lacre en la punta de la solapa (debajo del lazo) -->
@@ -286,12 +291,11 @@
           <div id="gmaps-embed-wrap" class="gmaps-embed-wrap">
             <div id="gmaps-quick-places" class="gmaps-quick-places" role="tablist" aria-label="Ubicaciones en el mapa"></div>
 
-            <div class="gmaps-viewport">
+            <div id="gmaps-viewport" class="gmaps-viewport">
               <iframe
                 id="gmaps-iframe"
                 class="gmaps-iframe"
                 title="Mapa interactivo en Google Maps"
-                loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
                 allowfullscreen
               ></iframe>

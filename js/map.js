@@ -11,6 +11,9 @@
   var activePointId = '';
   var mapType = 'm'; // 'm' = Mapa, 'h' = Satélite híbrido
   var myMapsUrl = '';
+  var currentLoadedUrl = '';
+  var pendingUrl = '';
+  var isMapNearViewport = false;
 
   function iconSvgForType(type) {
     if (type === 'venue') {
@@ -26,13 +29,58 @@
   }
 
   function buildEmbedUrl(point) {
+    var coords = point.lat + ',' + point.lng;
+    var query = point.name ? coords + ' (' + point.name + ')' : coords;
     return (
       'https://maps.google.com/maps?q=' +
-      encodeURIComponent(point.lat + ',' + point.lng) +
+      encodeURIComponent(query) +
+      '&ll=' +
+      encodeURIComponent(coords) +
       '&t=' +
       mapType +
-      '&z=15&ie=UTF8&iwloc=&output=embed'
+      '&z=15&hl=es&ie=UTF8&output=embed'
     );
+  }
+
+  /* En iOS Safari (WebKit), reasignar .src sobre un <iframe> cross-origin ya redirigido o con
+     loading="lazy" se queda congelado en la primera ubicación. Reemplazar el nodo <iframe> crea
+     un contexto limpio idéntico a la primera carga y garantiza el cambio de punto siempre. */
+  function loadIframeUrl(url, forceImmediate) {
+    if (!url) return;
+    if (!isMapNearViewport && !forceImmediate) {
+      pendingUrl = url;
+      return;
+    }
+    isMapNearViewport = true;
+    pendingUrl = '';
+
+    var oldIframe = document.getElementById('gmaps-iframe');
+    if (!oldIframe || !oldIframe.parentNode) return;
+
+    if (currentLoadedUrl === url && oldIframe.getAttribute('src')) {
+      return;
+    }
+    currentLoadedUrl = url;
+
+    var nextIframe = document.createElement('iframe');
+    nextIframe.id = 'gmaps-iframe';
+    nextIframe.className = 'gmaps-iframe is-loading';
+    nextIframe.title = 'Mapa interactivo en Google Maps';
+    nextIframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+    nextIframe.setAttribute('allowfullscreen', '');
+
+    var settled = false;
+    function markReady() {
+      if (settled) return;
+      settled = true;
+      nextIframe.classList.remove('is-loading');
+    }
+
+    nextIframe.addEventListener('load', markReady);
+    setTimeout(markReady, 900);
+
+    nextIframe.src = url;
+    oldIframe.parentNode.replaceChild(nextIframe, oldIframe);
   }
 
   function updateOverlayCard(point) {
@@ -86,40 +134,61 @@
   }
 
   function highlightActivePill(id) {
+    var container = document.getElementById('gmaps-quick-places');
     var btns = document.querySelectorAll('#gmaps-quick-places .gmaps-place-btn');
+    var activeBtn = null;
     btns.forEach(function (btn) {
-      btn.classList.toggle('is-active', btn.getAttribute('data-loc-id') === id);
+      var isMatch = btn.getAttribute('data-loc-id') === id;
+      btn.classList.toggle('is-active', isMatch);
+      if (isMatch) activeBtn = btn;
     });
+
+    // Centra suavemente la píldora activa en la barra horizontal móvil sin desplazar la ventana
+    if (container && activeBtn && container.scrollWidth > container.clientWidth) {
+      var targetLeft =
+        activeBtn.offsetLeft - container.clientWidth * 0.5 + activeBtn.offsetWidth * 0.5;
+      try {
+        container.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+      } catch (e) {
+        container.scrollLeft = Math.max(0, targetLeft);
+      }
+    }
   }
 
-  function selectMyMapsOverview() {
-    var iframe = document.getElementById('gmaps-iframe');
-    if (!iframe || !myMapsUrl) return;
+  function selectMyMapsOverview(userTriggered) {
+    if (!myMapsUrl) return;
     activePointId = '__all__';
-    iframe.src = myMapsUrl;
+    loadIframeUrl(myMapsUrl, Boolean(userTriggered));
     highlightActivePill('__all__');
     if (venuePoint) {
       updateOverlayCard(venuePoint);
     }
   }
 
-  function selectPoint(point, shouldScroll) {
+  function selectPoint(point, shouldScroll, userTriggered) {
     if (!point) return;
     activePointId = point.id;
-
-    var iframe = document.getElementById('gmaps-iframe');
-    if (iframe) {
-      iframe.src = buildEmbedUrl(point);
-    }
 
     updateOverlayCard(point);
     highlightActivePill(point.id);
 
+    var targetUrl = buildEmbedUrl(point);
+    var forceNow = Boolean(userTriggered || shouldScroll);
+
     if (shouldScroll) {
       var frameWrap = document.querySelector('.map-frame');
       if (frameWrap) {
-        frameWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        frameWrap.scrollIntoView({
+          behavior: 'smooth',
+          block: window.innerWidth <= 768 ? 'start' : 'center'
+        });
       }
+      // Pequeño margen para que el smooth scroll de iOS Safari no interrumpa la carga del nuevo iframe
+      setTimeout(function () {
+        loadIframeUrl(targetUrl, true);
+      }, 60);
+    } else {
+      loadIframeUrl(targetUrl, forceNow);
     }
   }
 
@@ -143,7 +212,9 @@
       allBtn.className = 'gmaps-place-btn';
       allBtn.setAttribute('data-loc-id', '__all__');
       allBtn.innerHTML = iconSvgForType('all') + '<span>Ver todos juntos</span>';
-      allBtn.addEventListener('click', selectMyMapsOverview);
+      allBtn.addEventListener('click', function () {
+        selectMyMapsOverview(true);
+      });
       container.appendChild(allBtn);
     }
 
@@ -154,7 +225,7 @@
       btn.setAttribute('data-loc-id', pt.id);
       btn.innerHTML = iconSvgForType(pt.type) + '<span>' + pt.name + '</span>';
       btn.addEventListener('click', function () {
-        selectPoint(pt, false);
+        selectPoint(pt, false, true);
       });
       container.appendChild(btn);
     });
@@ -174,17 +245,20 @@
     setFilterButtonUI(filter);
     renderQuickPlaces();
 
-    if (filter === 'all' && myMapsUrl) {
-      selectMyMapsOverview();
-      return;
+    if (filter === 'all') {
+      if (myMapsUrl) {
+        selectMyMapsOverview(true);
+        return;
+      }
+      if (venuePoint) {
+        selectPoint(venuePoint, false, true);
+        return;
+      }
     }
 
     var list = filteredPoints();
-    var currentStillVisible = list.some(function (pt) {
-      return pt.id === activePointId;
-    });
-    if (!currentStillVisible && list.length > 0) {
-      selectPoint(list[0], false);
+    if (list.length > 0) {
+      selectPoint(list[0], false, true);
     }
   }
 
@@ -198,7 +272,7 @@
       renderQuickPlaces();
     }
 
-    selectPoint(point, true);
+    selectPoint(point, true, true);
   }
 
   function setMapType(type) {
@@ -210,7 +284,7 @@
 
     if (activePointId && activePointId !== '__all__') {
       var pt = allPoints.find(function (p) { return p.id === activePointId; });
-      if (pt) selectPoint(pt, false);
+      if (pt) selectPoint(pt, false, true);
     }
   }
 
@@ -252,17 +326,42 @@
       });
     }
 
+    // Carga diferida limpia por IntersectionObserver (sin atributo loading="lazy" en el iframe,
+    // que bloqueaba cambios posteriores de src en iOS Safari)
+    var mapSection = document.getElementById('lugar-hoteles');
+    if ('IntersectionObserver' in window && mapSection) {
+      var mapObs = new IntersectionObserver(
+        function (entries) {
+          if (entries[0] && entries[0].isIntersecting) {
+            isMapNearViewport = true;
+            mapObs.disconnect();
+            if (pendingUrl) {
+              loadIframeUrl(pendingUrl, true);
+            }
+          }
+        },
+        { rootMargin: '420px 0px' }
+      );
+      mapObs.observe(mapSection);
+    } else {
+      isMapNearViewport = true;
+    }
+
     renderQuickPlaces();
     if (myMapsUrl) {
-      selectMyMapsOverview();
+      selectMyMapsOverview(false);
     } else if (venuePoint) {
-      selectPoint(venuePoint, false);
+      selectPoint(venuePoint, false, false);
     }
   }
 
   window.BodaMap = {
     init: init,
     focusLocation: focusLocation,
-    invalidateSize: function () {}
+    invalidateSize: function () {
+      if (isMapNearViewport && pendingUrl) {
+        loadIframeUrl(pendingUrl, true);
+      }
+    }
   };
 })();
