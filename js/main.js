@@ -244,7 +244,7 @@
             }
           });
         },
-        { threshold: 0.12 }
+        { threshold: 0.06, rootMargin: '0px 0px -24px 0px' }
       );
       revealEls.forEach(function (el) { obs.observe(el); });
     } else {

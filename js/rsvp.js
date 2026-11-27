@@ -115,7 +115,8 @@
     if (isNaN(curTop)) curTop = noRect.top - stageRect.top;
 
     var best = { left: maxLeft, top: pad };
-    for (var attempt = 0; attempt < 28; attempt++) {
+    var bestDist = -1;
+    for (var attempt = 0; attempt < 60; attempt++) {
       var candLeft = pad + Math.random() * Math.max(0, maxLeft - pad);
       var candTop = pad + Math.random() * Math.max(0, maxTop - pad);
 
@@ -126,12 +127,36 @@
         candTop > yesBox.bottom
       );
 
-      var movedDist = Math.hypot(candLeft - curLeft, candTop - curTop);
-      if (!overlapsYes && movedDist > 55) {
-        return { left: candLeft, top: candTop };
-      }
       if (!overlapsYes) {
-        best = { left: candLeft, top: candTop };
+        var movedDist = Math.hypot(candLeft - curLeft, candTop - curTop);
+        if (movedDist > 55) {
+          return { left: candLeft, top: candTop };
+        }
+        if (movedDist > bestDist) {
+          bestDist = movedDist;
+          best = { left: candLeft, top: candTop };
+        }
+      }
+    }
+
+    // Respaldo determinista en rejilla 4x3 (ideal en móvil vertical) para saltar siempre lejos
+    for (var gx = 0; gx < 4; gx++) {
+      for (var gy = 0; gy < 3; gy++) {
+        var gLeft = pad + (maxLeft - pad) * (gx / 3);
+        var gTop = pad + (maxTop - pad) * (gy / 2);
+        var gOverlaps = !(
+          gLeft + noRect.width < yesBox.left ||
+          gLeft > yesBox.right ||
+          gTop + noRect.height < yesBox.top ||
+          gTop > yesBox.bottom
+        );
+        if (!gOverlaps) {
+          var gDist = Math.hypot(gLeft - curLeft, gTop - curTop);
+          if (gDist > bestDist) {
+            bestDist = gDist;
+            best = { left: gLeft, top: gTop };
+          }
+        }
       }
     }
     return best;
@@ -152,7 +177,8 @@
     var maxDodges = cfg.rsvp.maxNoDodges || 5;
     noAttempts += 1;
 
-    var yesScale = 1 + noAttempts * 0.055;
+    var yesStepScale = window.innerWidth <= 640 ? 0.032 : 0.055;
+    var yesScale = 1 + noAttempts * yesStepScale;
     btnYes.style.transform = 'scale(' + yesScale.toFixed(3) + ')';
     btnYes.classList.add('is-magnetic');
 
@@ -206,9 +232,29 @@
       }
     });
 
+    btnNo.addEventListener('pointerdown', function (e) {
+      if (e.pointerType !== 'mouse' && !isSurrendered) {
+        handleNoDodge(e);
+      }
+    });
+
+    btnNo.addEventListener(
+      'touchstart',
+      function (e) {
+        if (!isSurrendered) {
+          handleNoDodge(e);
+        }
+      },
+      { passive: false }
+    );
+
     btnNo.addEventListener('click', function (e) {
       if (!isSurrendered) {
         handleNoDodge(e);
+        return;
+      }
+      if (Date.now() - lastDodgeAt < 350) {
+        e.preventDefault();
         return;
       }
 
@@ -224,7 +270,10 @@
         huskyText: 'Antes de firmar tu ausencia: el botón dorado de arriba aún te salva del arrepentimiento.',
         terrierText: 'Si le das a «¡Espera, sí voy!» borramos el historial y aquí no ha pasado nada.'
       });
-      formNo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      formNo.scrollIntoView({
+        behavior: 'smooth',
+        block: window.innerWidth <= 768 ? 'start' : 'nearest'
+      });
     });
 
     btnYes.addEventListener('click', function () {
@@ -234,7 +283,10 @@
       }
       renderWizardStep(1);
       showStep('yes');
-      formYes.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      formYes.scrollIntoView({
+        behavior: 'smooth',
+        block: window.innerWidth <= 768 ? 'start' : 'nearest'
+      });
     });
   }
 
@@ -406,6 +458,9 @@
       window.BodaDogAnimator.runCourierDelivery(snippet, caption, function () {
         isTransitioning = false;
         renderWizardStep(toStep);
+        if (window.innerWidth <= 768 && formYes) {
+          formYes.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       });
     } else {
       isTransitioning = false;

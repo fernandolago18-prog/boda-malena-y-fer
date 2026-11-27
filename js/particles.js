@@ -7,6 +7,7 @@
   var ctx = null;
   var particles = [];
   var rafId = null;
+  var lastTickTs = 0;
   var dpr = 1;
 
   function ensureCanvas() {
@@ -29,30 +30,37 @@
 
   function spawn(count, factory) {
     if (!ensureCanvas()) return;
-    for (var i = 0; i < count; i++) {
-      particles.push(factory(i, count));
+    var actualCount = window.innerWidth <= 640 ? Math.max(8, Math.round(count * 0.7)) : count;
+    for (var i = 0; i < actualCount; i++) {
+      particles.push(factory(i, actualCount));
     }
     if (!rafId) {
+      lastTickTs = 0;
       rafId = requestAnimationFrame(tick);
     }
   }
 
-  function tick() {
+  function tick(ts) {
     if (!ctx || !canvas) return;
+    if (!lastTickTs) lastTickTs = ts;
+    var dt60 = Math.max(0.4, Math.min(2.0, ((ts - lastTickTs) / 1000) * 60));
+    lastTickTs = ts;
+
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
     var next = [];
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
-      p.age += 1;
+      p.age += dt60;
       if (p.age >= p.life) continue;
 
-      p.vx *= p.drag;
-      p.vy += p.gravity;
-      p.x += p.vx;
-      p.y += p.vy;
-      p.rot += p.vRot;
+      var dragStep = Math.pow(p.drag, dt60);
+      p.vx *= dragStep;
+      p.vy += p.gravity * dt60;
+      p.x += p.vx * dt60;
+      p.y += p.vy * dt60;
+      p.rot += p.vRot * dt60;
 
       var alpha = 1 - Math.pow(p.age / p.life, 1.8);
       ctx.save();

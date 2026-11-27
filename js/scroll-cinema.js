@@ -6,6 +6,7 @@
   var cfg = null;
   var sectionEl = null;
   var trackEl = null;
+  var stageEl = null;
   var bgContainer = null;
   var chaptersContainer = null;
   var dotsContainer = null;
@@ -34,6 +35,24 @@
   var prevProgress = 0;
   var scrollVelocity = 0;
   var lastFrameTs = 0;
+  var lastRenderedProgress = -1;
+
+  // Altura de viewport estable: en móvil la barra del navegador cambia innerHeight al hacer scroll
+  var isTouch = Boolean(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  var stableViewportH = window.innerHeight;
+  var lastViewportW = window.innerWidth;
+  var canvasDpr = 1;
+
+  function updateViewportMetrics(force) {
+    var w = window.innerWidth;
+    var h = window.innerHeight;
+    if (force || w !== lastViewportW || Math.abs(h - stableViewportH) > 140) {
+      stableViewportH = h;
+      lastViewportW = w;
+      return true;
+    }
+    return false;
+  }
 
   // Rango narrativo con meseta final cómoda antes del fundido de salida (0.84 -> 1.00)
   var STORY_START = 0.02;
@@ -170,7 +189,8 @@
     if (!particleCanvas) return;
     particleCtx = particleCanvas.getContext('2d');
     motes = [];
-    for (var i = 0; i < 34; i++) {
+    var moteCount = isTouch ? 18 : 34;
+    for (var i = 0; i < moteCount; i++) {
       motes.push({
         x: Math.random(),
         y: Math.random(),
@@ -184,9 +204,10 @@
   }
 
   function resizeCanvases() {
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var dpr = Math.min(window.devicePixelRatio || 1, isTouch ? 1.5 : 2);
+    canvasDpr = dpr;
     var w = window.innerWidth;
-    var h = window.innerHeight;
+    var h = stableViewportH;
 
     if (particleCanvas) {
       particleCanvas.width = Math.floor(w * dpr);
@@ -226,15 +247,19 @@
       var py = m.y * h;
       particleCtx.fillStyle = 'rgba(229, 200, 134, ' + (m.alpha * exitSoft).toFixed(3) + ')';
       particleCtx.beginPath();
-      particleCtx.arc(px, py, m.r * (window.devicePixelRatio || 1), 0, Math.PI * 2);
+      particleCtx.arc(px, py, m.r * canvasDpr, 0, Math.PI * 2);
       particleCtx.fill();
     }
+  }
+
+  function getStageHeight() {
+    return (stageEl && stageEl.offsetHeight) || stableViewportH;
   }
 
   function computeTargetProgress() {
     if (!trackEl) return;
     var rect = trackEl.getBoundingClientRect();
-    var scrollable = rect.height - window.innerHeight;
+    var scrollable = rect.height - getStageHeight();
     if (scrollable <= 0) {
       targetProgress = 0;
       return;
@@ -351,7 +376,8 @@
     lastFrameTs = ts;
 
     // Amortiguación aterciopelada (3.3): convierte cada muesca de rueda en un deslizamiento continuo
-    var damping = 1 - Math.exp(-3.3 * dt);
+    // En táctil el scroll ya tiene inercia nativa: amortiguación más ágil y pegada al dedo
+    var damping = 1 - Math.exp(-(isTouch ? 10.5 : 3.3) * dt);
     currentProgress += (targetProgress - currentProgress) * damping;
     if (Math.abs(targetProgress - currentProgress) < 0.00008) {
       currentProgress = targetProgress;
@@ -360,7 +386,11 @@
     scrollVelocity = (currentProgress - prevProgress) / Math.max(0.008, dt) * 0.016;
     prevProgress = currentProgress;
 
-    renderAtProgress(currentProgress);
+    // Solo se repinta cuando el progreso cambia (gran ahorro de batería y fluidez en móvil)
+    if (Math.abs(currentProgress - lastRenderedProgress) > 0.00002) {
+      renderAtProgress(currentProgress);
+      lastRenderedProgress = currentProgress;
+    }
 
     if (sectionEl) {
       var rect = sectionEl.getBoundingClientRect();
@@ -377,7 +407,7 @@
     var count = chapterEls.length;
     if (count < 2) return;
     var ratio = STORY_START + clamp(index / (count - 1), 0, 1) * (STORY_END - STORY_START);
-    var scrollable = trackEl.offsetHeight - window.innerHeight;
+    var scrollable = trackEl.offsetHeight - getStageHeight();
     var top = trackEl.getBoundingClientRect().top + window.scrollY + ratio * scrollable;
     window.scrollTo({ top: top, behavior: 'smooth' });
   }
@@ -386,6 +416,7 @@
     cfg = config;
     sectionEl = document.getElementById('historia-cinema');
     trackEl = sectionEl ? sectionEl.querySelector('.cinema-track') : null;
+    stageEl = sectionEl ? sectionEl.querySelector('.cinema-stage') : null;
     bgContainer = document.getElementById('cinema-bg-layers');
     chaptersContainer = document.getElementById('cinema-chapters');
     dotsContainer = document.getElementById('cinema-dots');
@@ -413,9 +444,20 @@
     renderAtProgress(currentProgress);
 
     window.addEventListener('scroll', computeTargetProgress, { passive: true });
+    // Ignora los micro-redimensionados de la barra de direcciones móvil (evita saltos y parpadeos)
     window.addEventListener('resize', function () {
-      resizeCanvases();
+      if (updateViewportMetrics(false)) {
+        resizeCanvases();
+      }
       computeTargetProgress();
+    });
+    window.addEventListener('orientationchange', function () {
+      setTimeout(function () {
+        updateViewportMetrics(true);
+        resizeCanvases();
+        computeTargetProgress();
+        lastRenderedProgress = -1;
+      }, 260);
     });
 
     var skipBtn = document.getElementById('cinema-skip-btn');

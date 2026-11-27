@@ -448,7 +448,7 @@
     rigHost.innerHTML = '';
     rigHost.appendChild(canvas);
 
-    var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(LOGICAL_W * dpr);
     canvas.height = Math.round(LOGICAL_H * dpr);
 
@@ -509,7 +509,7 @@
 
   function syncCanvasDpr(dog) {
     if (!dog || !dog.canvas) return;
-    var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var targetW = Math.round(LOGICAL_W * dpr);
     var targetH = Math.round(LOGICAL_H * dpr);
     if (dog.canvas.width !== targetW || dog.canvas.height !== targetH) {
@@ -536,11 +536,15 @@
 
   function getExpectedActorWidth(dog, docked) {
     var vw = window.innerWidth;
+    if (docked) {
+      if (vw <= 640) return 112;
+      if (dog && dog.actorEl && dog.actorEl.offsetWidth > 60) {
+        return dog.actorEl.offsetWidth;
+      }
+      return clamp(vw * 0.38, 138, 196);
+    }
     if (dog && dog.actorEl && dog.actorEl.offsetWidth > 60) {
       return dog.actorEl.offsetWidth;
-    }
-    if (docked) {
-      return vw <= 640 ? clamp(vw * 0.4, 122, 152) : clamp(vw * 0.38, 138, 196);
     }
     return clamp(vw * 0.158, 148, 214);
   }
@@ -569,6 +573,18 @@
     };
   }
 
+  function getDockedSafeRange(dog, vw) {
+    var actorW = getExpectedActorWidth(dog, true);
+    var stageW = (stageEl && stageEl.clientWidth) || Math.min(720, vw - 24);
+    var dPad = 4;
+    if (dog.key === 'husky') {
+      return { min: dPad, max: Math.max(dPad, stageW * 0.47 - actorW) };
+    }
+    var minT = Math.min(stageW - actorW - dPad, stageW * 0.53);
+    var maxT = Math.max(minT, stageW - actorW - dPad);
+    return { min: minT, max: maxT };
+  }
+
   function percentToPixelX(dog, xPct) {
     var layout = updateLayoutMode();
     var vw = layout.vw;
@@ -577,17 +593,13 @@
     var actorW = getExpectedActorWidth(dog, docked);
 
     if (docked) {
-      var stageW = (stageEl && stageEl.clientWidth) || Math.min(720, vw - 24);
-      var dPad = 4;
+      var bounds = getDockedSafeRange(dog, vw);
       if (dog.key === 'husky') {
         var uH = clamp((xPct - 3) / 15, 0, 1);
-        var maxH = Math.max(dPad, stageW * 0.47 - actorW);
-        return lerp(dPad, maxH, uH);
+        return lerp(bounds.min, bounds.max, uH);
       }
       var uT = clamp((77 - xPct) / 16, 0, 1);
-      var minT = Math.min(stageW - actorW - dPad, stageW * 0.53);
-      var maxT = Math.max(minT, stageW - actorW - dPad);
-      return lerp(maxT, minT, uT);
+      return lerp(bounds.max, bounds.min, uT);
     }
 
     var pad = 12;
@@ -623,7 +635,11 @@
       // Espera a levantar los cuartos traseros (sitBlend < 0.55) para impulsar la carrera
       var standReady = smoothstep(0.68, 0.15, dog.sitBlend);
       var brakeFactor = clamp(Math.sqrt(absDx / 82), 0.18, 1.0);
-      var desiredSpeed = dog.maxSpeed * standReady * brakeFactor * Math.sign(dx);
+      var effectiveMaxSpeed =
+        !isCourierBusy && isDocked && window.innerWidth <= 640
+          ? Math.min(dog.maxSpeed, 175)
+          : dog.maxSpeed;
+      var desiredSpeed = effectiveMaxSpeed * standReady * brakeFactor * Math.sign(dx);
 
       var accel = isCourierBusy ? 1850 : 980;
       var dv = clamp(desiredSpeed - dog.vx, -accel * dt, accel * dt);
@@ -636,10 +652,11 @@
       }
       dog.x += stepX;
 
-      // Fase de paso bloqueada a la distancia real recorrida (cero deslizamiento de patas)
-      var stridePixels = isCourierBusy ? 118 : 92;
+      // Fase de paso proporcional al tamaño real del perro y la distancia recorrida (cero deslizamiento)
+      var sizeRatio = clamp(getExpectedActorWidth(dog, isDocked) / 205, 0.52, 1.05);
+      var stridePixels = (isCourierBusy ? 118 : 92) * sizeRatio;
       dog.walkPhase += (Math.abs(stepX) / stridePixels) * Math.PI * 2;
-      var targetGait = clamp(Math.abs(dog.vx) / Math.max(140, dog.maxSpeed * 0.72), 0.15, 1.15);
+      var targetGait = clamp(Math.abs(dog.vx) / Math.max(110, effectiveMaxSpeed * 0.72), 0.15, 1.15);
       dog.gaitAmp = lerp(dog.gaitAmp, targetGait, dt * 10);
     } else {
       dog.x = dog.targetX;
@@ -838,7 +855,18 @@
     if (opts.mood) dog.mood = opts.mood;
     if (typeof opts.xPct === 'number') {
       dog.lastXPct = opts.xPct;
-      dog.targetX = percentToPixelX(dog, opts.xPct);
+      var nextTargetX = percentToPixelX(dog, opts.xPct);
+      // En móvil acoplado, si el destino queda demasiado cerca (<36px), alterna al extremo opuesto
+      // de su pasillo seguro para que siempre camine pasos visibles antes de sentarse.
+      if (isDocked && Math.abs(nextTargetX - dog.x) < 36) {
+        var dockedRange = getDockedSafeRange(dog, window.innerWidth);
+        if (dockedRange.max - dockedRange.min >= 38) {
+          var distMin = Math.abs(dog.x - dockedRange.min);
+          var distMax = Math.abs(dog.x - dockedRange.max);
+          nextTargetX = distMin > distMax ? dockedRange.min : dockedRange.max;
+        }
+      }
+      dog.targetX = nextTargetX;
     }
     if (opts.jump) {
       dog.jumpDelay = 0.07;
@@ -896,13 +924,17 @@
 
     // El perrito canela sujeta el sobre sellado en la boca y ambos trotan juntos cruzando la web
     var runStageW = isDocked && stageEl && stageEl.clientWidth ? stageEl.clientWidth : window.innerWidth;
+    if (isDocked) {
+      dogs.husky.x = Math.max(dogs.husky.x, runStageW * 0.36);
+      dogs.terrier.x = Math.max(dogs.terrier.x, runStageW * 0.72);
+    }
     dogs.terrier.hasEnvelope = true;
     dogs.husky.mood = 'carry';
     dogs.terrier.mood = 'carry';
-    dogs.husky.targetX = -300;
-    dogs.terrier.targetX = -220;
-    dogs.husky.maxSpeed = Math.max(660, Math.abs(dogs.husky.x - dogs.husky.targetX) / 1.05);
-    dogs.terrier.maxSpeed = Math.max(740, Math.abs(dogs.terrier.x - dogs.terrier.targetX) / 1.08);
+    dogs.husky.targetX = isDocked ? -210 : -300;
+    dogs.terrier.targetX = isDocked ? -140 : -220;
+    dogs.husky.maxSpeed = Math.max(isDocked ? 310 : 660, Math.abs(dogs.husky.x - dogs.husky.targetX) / (isDocked ? 1.12 : 1.05));
+    dogs.terrier.maxSpeed = Math.max(isDocked ? 340 : 740, Math.abs(dogs.terrier.x - dogs.terrier.targetX) / (isDocked ? 1.14 : 1.08));
     ensureRunning();
 
     setTimeout(function () {
