@@ -23,12 +23,11 @@ var HEADERS = [
   'Nombre invitado',
   'Email / Teléfono',
   'Asistencia',
+  'Total asistentes',
   'Lleva acompañante',
   'Nombre acompañante',
   'Número de niños',
   'Detalle niños',
-  'Menú principal',
-  'Menú acompañante',
   'Alergias / Dieta',
   'Necesita autobús',
   'Nivel fiesta (1-5)',
@@ -66,12 +65,12 @@ function sendGuestConfirmationEmail_(data) {
         '<h2 style="color:#3E4C37;margin-top:0;">¡Qué alegría contar contigo, ' + escapeHtml_(data.name) + '!</h2>' +
         '<p>Hemos guardado tu confirmación para nuestra boda (<strong>' + WEDDING_DATE_TEXT + '</strong>).</p>' +
         '<ul>' +
-          '<li><strong>Menú:</strong> ' + escapeHtml_(data.menu) + (data.hasPlusOne ? ' (+1: ' + escapeHtml_(data.plusOneMenu) + ')' : '') + '</li>' +
+          '<li><strong>Asistentes confirmados:</strong> ' + escapeHtml_(data.totalGuests || 1) + (data.hasPlusOne ? ' (con ' + escapeHtml_(data.plusOneName) + ')' : '') + '</li>' +
           (data.childrenCount > 0 ? '<li><strong>Niños (' + escapeHtml_(data.childrenCount) + '):</strong> ' + escapeHtml_(data.childrenDetails) + '</li>' : '') +
           '<li><strong>Alergias:</strong> ' + escapeHtml_(data.allergies || 'Ninguna') + '</li>' +
           '<li><strong>Autobús:</strong> ' + (data.bus ? 'Sí, plaza reservada' : 'No necesario') + '</li>' +
           '<li><strong>Petición DJ:</strong> ' + escapeHtml_(data.song || 'Sorpresa del DJ') + '</li>' +
-          '<li><strong>Código de Pase VIP:</strong> ' + escapeHtml_(data.passCode || 'LM-2027') + '</li>' +
+          '<li><strong>Código de Pase VIP:</strong> ' + escapeHtml_(data.passCode || 'MF-2027') + '</li>' +
         '</ul>' +
         '<p style="margin-bottom:0;">¡Nos vemos en la pista de baile!<br><em>' + COUPLE_NAMES + '</em></p>' +
       '</div>'
@@ -97,9 +96,9 @@ function sendCoupleNotificationEmail_(data) {
     'Nombre: ' + data.name + '\n' +
     'Contacto: ' + data.email + '\n' +
     'Asistencia: ' + data.attendance + '\n' +
+    'Total asistentes: ' + (data.totalGuests || (data.attendance === 'Sí' ? 1 : 0)) + '\n' +
     'Acompañante: ' + (data.hasPlusOne ? data.plusOneName : 'No') + '\n' +
     'Niños: ' + (data.childrenCount > 0 ? data.childrenCount + ' (' + (data.childrenDetails || '-') + ')' : 'No') + '\n' +
-    'Menú: ' + (data.menu || '-') + (data.hasPlusOne ? ' / +1: ' + data.plusOneMenu : '') + '\n' +
     'Alergias: ' + (data.allergies || '-') + '\n' +
     'Autobús: ' + (data.bus ? 'Sí' : 'No') + '\n' +
     'Nivel fiesta: ' + (data.partyLabel || '-') + '\n' +
@@ -131,12 +130,11 @@ function doPost(e) {
       payload.name || '',
       payload.email || '',
       payload.attendance || '',
+      payload.totalGuests || (payload.attendance === 'Sí' ? 1 : 0),
       payload.hasPlusOne ? 'Sí' : 'No',
       payload.plusOneName || '',
       payload.childrenCount || 0,
       payload.childrenDetails || '',
-      payload.menu || '',
-      payload.plusOneMenu || '',
       payload.allergies || '',
       payload.bus ? 'Sí' : 'No',
       payload.partyLevel || '',

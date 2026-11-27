@@ -43,7 +43,7 @@
   function tick(ts) {
     if (!ctx || !canvas) return;
     if (!lastTickTs) lastTickTs = ts;
-    var dt60 = Math.max(0.4, Math.min(2.0, ((ts - lastTickTs) / 1000) * 60));
+    var dt60 = Math.max(0.15, Math.min(1.6, ((ts - lastTickTs) / 1000) * 60));
     lastTickTs = ts;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

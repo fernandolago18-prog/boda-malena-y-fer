@@ -235,16 +235,25 @@
 
     var revealEls = document.querySelectorAll('.reveal-on-scroll');
     if ('IntersectionObserver' in window) {
+      var isMobileView = window.innerWidth <= 768;
       var obs = new IntersectionObserver(
         function (entries) {
+          var visibleBatch = 0;
           entries.forEach(function (entry) {
             if (entry.isIntersecting) {
+              if (visibleBatch > 0) {
+                entry.target.style.transitionDelay = Math.min(visibleBatch * 95, 285) + 'ms';
+              }
+              visibleBatch += 1;
               entry.target.classList.add('is-visible');
               obs.unobserve(entry.target);
             }
           });
         },
-        { threshold: 0.06, rootMargin: '0px 0px -24px 0px' }
+        {
+          threshold: isMobileView ? 0.12 : 0.08,
+          rootMargin: isMobileView ? '0px 0px -10% 0px' : '0px 0px -40px 0px'
+        }
       );
       revealEls.forEach(function (el) { obs.observe(el); });
     } else {

@@ -575,13 +575,13 @@
 
   function getDockedSafeRange(dog, vw) {
     var actorW = getExpectedActorWidth(dog, true);
-    var stageW = (stageEl && stageEl.clientWidth) || Math.min(720, vw - 24);
-    var dPad = 4;
+    var stageW = (stageEl && stageEl.clientWidth) || Math.min(720, vw - 16);
+    var dPad = Math.round(clamp(stageW * 0.085, 22, 56));
     if (dog.key === 'husky') {
-      return { min: dPad, max: Math.max(dPad, stageW * 0.47 - actorW) };
+      return { min: dPad, max: Math.max(dPad, Math.round(stageW * 0.49 - actorW)) };
     }
-    var minT = Math.min(stageW - actorW - dPad, stageW * 0.53);
-    var maxT = Math.max(minT, stageW - actorW - dPad);
+    var maxT = Math.max(0, stageW - actorW - dPad);
+    var minT = Math.min(maxT, Math.round(stageW * 0.51));
     return { min: minT, max: maxT };
   }
 
@@ -595,10 +595,10 @@
     if (docked) {
       var bounds = getDockedSafeRange(dog, vw);
       if (dog.key === 'husky') {
-        var uH = clamp((xPct - 3) / 15, 0, 1);
+        var uH = clamp((xPct - 1) / 17, 0.22, 1);
         return lerp(bounds.min, bounds.max, uH);
       }
-      var uT = clamp((77 - xPct) / 16, 0, 1);
+      var uT = clamp((79 - xPct) / 18, 0.22, 1);
       return lerp(bounds.max, bounds.min, uT);
     }
 
@@ -616,6 +616,40 @@
     return lerp(rightMax, rightMin, uRight);
   }
 
+  function syncBubblePosition(dog) {
+    if (!dog || !dog.bubbleEl || dog.bubbleEl.classList.contains('is-hidden')) return;
+    var bubW = dog.bubbleEl.offsetWidth;
+    if (!bubW) return;
+
+    var actorW = (dog.actorEl && dog.actorEl.offsetWidth) || getExpectedActorWidth(dog, isDocked);
+    var dogCenter = dog.x + actorW * 0.5;
+    var naturalLeft = dogCenter - bubW * 0.5;
+    var minLeft, maxLeft;
+
+    if (isDocked) {
+      var stageW = (stageEl && stageEl.clientWidth) || Math.min(720, window.innerWidth - 16);
+      var edgePad = 6;
+      var midGap = 5;
+      if (dog.key === 'husky') {
+        minLeft = edgePad;
+        maxLeft = Math.max(minLeft, stageW * 0.5 - midGap - bubW);
+      } else {
+        minLeft = stageW * 0.5 + midGap;
+        maxLeft = Math.max(minLeft, stageW - edgePad - bubW);
+      }
+    } else {
+      minLeft = 14;
+      maxLeft = Math.max(minLeft, window.innerWidth - 14 - bubW);
+    }
+
+    var clampedLeft = clamp(naturalLeft, minLeft, maxLeft);
+    var shiftX = clampedLeft - naturalLeft;
+    var tailX = clamp(dogCenter - clampedLeft, 18, Math.max(18, bubW - 18));
+
+    dog.bubbleEl.style.setProperty('--bubble-shift', shiftX.toFixed(1) + 'px');
+    dog.bubbleEl.style.setProperty('--tail-x', tailX.toFixed(1) + 'px');
+  }
+
   /* --------------------------------------------------------------------------
      SIMULACIÓN FÍSICA + RENDERIZADO 60FPS DE CADA PERRO
      -------------------------------------------------------------------------- */
@@ -625,23 +659,24 @@
     var dx = dog.targetX - dog.x;
     var absDx = Math.abs(dx);
     var wantsToMove = absDx > 4.5;
+    var isMobileDocked = isDocked && window.innerWidth <= 640;
 
     // 1. Incorporarse desde sentado antes de arrancar + aceleración/deceleración suave
     if (wantsToMove) {
       dog.facing = dx > 0 ? 1 : -1;
-      dog.sitBlend = Math.max(0, dog.sitBlend - dt * (isCourierBusy ? 6.2 : 4.2));
+      dog.sitBlend = Math.max(0, dog.sitBlend - dt * (isCourierBusy ? 5.0 : (isMobileDocked ? 3.0 : 4.2)));
       dog.wasSitting = false;
 
       // Espera a levantar los cuartos traseros (sitBlend < 0.55) para impulsar la carrera
       var standReady = smoothstep(0.68, 0.15, dog.sitBlend);
       var brakeFactor = clamp(Math.sqrt(absDx / 82), 0.18, 1.0);
       var effectiveMaxSpeed =
-        !isCourierBusy && isDocked && window.innerWidth <= 640
-          ? Math.min(dog.maxSpeed, 175)
+        !isCourierBusy && isMobileDocked
+          ? Math.min(dog.maxSpeed, 118)
           : dog.maxSpeed;
       var desiredSpeed = effectiveMaxSpeed * standReady * brakeFactor * Math.sign(dx);
 
-      var accel = isCourierBusy ? 1850 : 980;
+      var accel = isCourierBusy ? 1450 : (isMobileDocked ? 620 : 980);
       var dv = clamp(desiredSpeed - dog.vx, -accel * dt, accel * dt);
       dog.vx += dv;
 
@@ -654,19 +689,19 @@
 
       // Fase de paso proporcional al tamaño real del perro y la distancia recorrida (cero deslizamiento)
       var sizeRatio = clamp(getExpectedActorWidth(dog, isDocked) / 205, 0.52, 1.05);
-      var stridePixels = (isCourierBusy ? 118 : 92) * sizeRatio;
+      var stridePixels = (isCourierBusy ? 114 : 90) * sizeRatio;
       dog.walkPhase += (Math.abs(stepX) / stridePixels) * Math.PI * 2;
-      var targetGait = clamp(Math.abs(dog.vx) / Math.max(110, effectiveMaxSpeed * 0.72), 0.15, 1.15);
+      var targetGait = clamp(Math.abs(dog.vx) / Math.max(95, effectiveMaxSpeed * 0.72), 0.18, 1.15);
       dog.gaitAmp = lerp(dog.gaitAmp, targetGait, dt * 10);
     } else {
       dog.x = dog.targetX;
       dog.vx = 0;
       dog.facing = dog.restFacing;
-      dog.gaitAmp = lerp(dog.gaitAmp, 0, dt * 11);
+      dog.gaitAmp = lerp(dog.gaitAmp, 0, dt * 10);
 
       if (!isCourierBusy) {
         var prevSit = dog.sitBlend;
-        dog.sitBlend = Math.min(1, dog.sitBlend + dt * 3.2);
+        dog.sitBlend = Math.min(1, dog.sitBlend + dt * (isMobileDocked ? 2.4 : 3.2));
         if (prevSit < 0.72 && dog.sitBlend >= 0.72 && !dog.wasSitting) {
           dog.wasSitting = true;
           dog.settleBounce = 1.0;
@@ -752,9 +787,10 @@
       }
     }
 
-    // 4. Posicionamiento DOM acelerado por GPU
+    // 4. Posicionamiento DOM acelerado por GPU y ajuste antirecorte de bocadillos
     dog.actorEl.style.transform =
       'translate3d(' + dog.x.toFixed(1) + 'px, ' + (-dog.jumpY).toFixed(1) + 'px, 0)';
+    syncBubblePosition(dog);
 
     // 5. Dibujo en Canvas de alta resolución
     syncCanvasDpr(dog);
@@ -839,12 +875,13 @@
       dog.bubbleEl.classList.add('is-hidden');
       return;
     }
+    dog.bubbleEl.textContent = text;
     dog.bubbleEl.classList.remove('is-hidden');
     dog.bubbleEl.style.animation = 'none';
     void dog.bubbleEl.offsetWidth;
+    syncBubblePosition(dog);
     dog.bubbleEl.style.animation = '';
-    dog.bubbleEl.textContent = text;
-    dog.talkTimer = 1.35;
+    dog.talkTimer = 1.5;
     dog.earSpringVel += 75;
   }
 
@@ -856,11 +893,11 @@
     if (typeof opts.xPct === 'number') {
       dog.lastXPct = opts.xPct;
       var nextTargetX = percentToPixelX(dog, opts.xPct);
-      // En móvil acoplado, si el destino queda demasiado cerca (<36px), alterna al extremo opuesto
+      // En móvil acoplado, si el destino queda demasiado cerca (<26px), alterna al extremo opuesto
       // de su pasillo seguro para que siempre camine pasos visibles antes de sentarse.
-      if (isDocked && Math.abs(nextTargetX - dog.x) < 36) {
+      if (isDocked && Math.abs(nextTargetX - dog.x) < 26) {
         var dockedRange = getDockedSafeRange(dog, window.innerWidth);
-        if (dockedRange.max - dockedRange.min >= 38) {
+        if (dockedRange.max - dockedRange.min >= 28) {
           var distMin = Math.abs(dog.x - dockedRange.min);
           var distMax = Math.abs(dog.x - dockedRange.max);
           nextTargetX = distMin > distMax ? dockedRange.min : dockedRange.max;
@@ -922,19 +959,18 @@
       bannerEl.classList.remove('is-hidden');
     }
 
-    // El perrito canela sujeta el sobre sellado en la boca y ambos trotan juntos cruzando la web
+    // El perrito canela sujeta el sobre sellado en la boca y ambos trotan juntos a ritmo apreciable
     var runStageW = isDocked && stageEl && stageEl.clientWidth ? stageEl.clientWidth : window.innerWidth;
-    if (isDocked) {
-      dogs.husky.x = Math.max(dogs.husky.x, runStageW * 0.36);
-      dogs.terrier.x = Math.max(dogs.terrier.x, runStageW * 0.72);
-    }
+    var deliveryMs = isDocked ? 1900 : 1550;
+    var runSec = deliveryMs / 1000;
+
     dogs.terrier.hasEnvelope = true;
     dogs.husky.mood = 'carry';
     dogs.terrier.mood = 'carry';
-    dogs.husky.targetX = isDocked ? -210 : -300;
-    dogs.terrier.targetX = isDocked ? -140 : -220;
-    dogs.husky.maxSpeed = Math.max(isDocked ? 310 : 660, Math.abs(dogs.husky.x - dogs.husky.targetX) / (isDocked ? 1.12 : 1.05));
-    dogs.terrier.maxSpeed = Math.max(isDocked ? 340 : 740, Math.abs(dogs.terrier.x - dogs.terrier.targetX) / (isDocked ? 1.14 : 1.08));
+    dogs.husky.targetX = isDocked ? -135 : -300;
+    dogs.terrier.targetX = isDocked ? -125 : -220;
+    dogs.husky.maxSpeed = Math.max(isDocked ? 195 : 540, Math.abs(dogs.husky.x - dogs.husky.targetX) / (runSec * 0.86));
+    dogs.terrier.maxSpeed = Math.max(isDocked ? 235 : 620, Math.abs(dogs.terrier.x - dogs.terrier.targetX) / (runSec * 0.88));
     ensureRunning();
 
     setTimeout(function () {
@@ -942,15 +978,15 @@
       dogs.husky.maxSpeed = 255;
       dogs.terrier.maxSpeed = 255;
       var reentryW = isDocked && stageEl && stageEl.clientWidth ? stageEl.clientWidth : runStageW;
-      // Regresan andando tranquilamente desde ambos lados hasta su nuevo sitio y se sientan
-      dogs.husky.x = -160;
-      dogs.terrier.x = reentryW + 12;
+      // Regresan andando tranquilamente desde los lados (visibles desde el primer instante en móvil) y se sientan
+      dogs.husky.x = isDocked ? -84 : -160;
+      dogs.terrier.x = isDocked ? reentryW - 22 : reentryW + 12;
       dogs.husky.sitBlend = 0;
       dogs.terrier.sitBlend = 0;
       if (bannerEl) bannerEl.classList.add('is-hidden');
       isCourierBusy = false;
       if (typeof onDone === 'function') onDone();
-    }, reducedMotion ? 350 : 1320);
+    }, deliveryMs);
   }
 
   function refreshBounds(snapImmediate) {
@@ -968,6 +1004,9 @@
         stepAndRenderDog(dogs.husky, 0.016, 0);
         stepAndRenderDog(dogs.terrier, 0.016, 0);
       }
+    } else {
+      syncBubblePosition(dogs.husky);
+      syncBubblePosition(dogs.terrier);
     }
   }
 
@@ -978,8 +1017,8 @@
   function init(config) {
     cfg = config;
     rigData = window.BODA_DOG_RIG_DATA || null;
-    reducedMotion =
-      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Mantenemos animación suave siempre activa (incluso si iOS tiene «Reducir movimiento» del sistema)
+    reducedMotion = false;
 
     if (rigData) {
       preloadRigTree(rigData.husky);

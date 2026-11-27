@@ -207,7 +207,7 @@
     var dpr = Math.min(window.devicePixelRatio || 1, isTouch ? 1.5 : 2);
     canvasDpr = dpr;
     var w = window.innerWidth;
-    var h = stableViewportH;
+    var h = getStageHeight();
 
     if (particleCanvas) {
       particleCanvas.width = Math.floor(w * dpr);
@@ -375,10 +375,14 @@
     var dt = clamp((ts - lastFrameTs) / 1000, 0.001, 0.05);
     lastFrameTs = ts;
 
-    // Amortiguación aterciopelada (3.3): convierte cada muesca de rueda en un deslizamiento continuo
-    // En táctil el scroll ya tiene inercia nativa: amortiguación más ágil y pegada al dedo
-    var damping = 1 - Math.exp(-(isTouch ? 10.5 : 3.3) * dt);
-    currentProgress += (targetProgress - currentProgress) * damping;
+    // Amortiguación cinematográfica aterciopelada en PC y smartphone (incl. pantallas ProMotion 120Hz)
+    // más límite suave de velocidad máxima para que un gesto táctil rápido nunca salte escenas sin verlas
+    var smoothRate = isTouch ? 2.75 : 3.3;
+    var damping = 1 - Math.exp(-smoothRate * dt);
+    var rawDelta = (targetProgress - currentProgress) * damping;
+    var maxStep = (isTouch ? 0.36 : 0.85) * dt;
+    var stepProgress = clamp(rawDelta, -maxStep, maxStep);
+    currentProgress += stepProgress;
     if (Math.abs(targetProgress - currentProgress) < 0.00008) {
       currentProgress = targetProgress;
     }

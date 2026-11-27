@@ -10,7 +10,7 @@ Incluye:
 - **Mapa interactivo 100% gratuito sobre Google Maps**: filtros por categoría (Finca, Hoteles, Autobús), selector **Mapa / Satélite**, tarjeta flotante con códigos promocionales copiables, ruta GPS directa y soporte opcional para **Google My Maps** con todos los pines juntos.
 - **Cuestionario RSVP interactivo**:
   - Botón *"No podré asistir"* fugitivo durante **5 intentos** (con mensajes crecientes mientras el botón *"Sí"* crece).
-  - Selección visual de menú, acompañante (+1), chips de alergias, medidor de barra libre (1–5) y **tocadiscos DJ** con *Easter eggs* según la canción.
+  - Confirmación de asistencia, acompañante (+1), niños, alergias, autobús, medidor de barra libre (1–5) y **tocadiscos DJ** con *Easter eggs* según la canción.
   - Generación automática de **Pase VIP descargable en PNG**.
 
 ---
@@ -68,7 +68,7 @@ cinema: {
 ## 4. Conectar el cuestionario RSVP con Google (2 opciones gratuitas)
 
 ### Opción A: Google Forms oculto (lo más rápido)
-1. Crea un **Google Form** con preguntas de texto corto correspondientes a: Nombre, Email/Teléfono, Asistencia, Acompañante, Nombre acompañante, Menú, Menú acompañante, Alergias, Autobús, Nivel fiesta, Canción DJ, Mensaje y Intentos botón No.
+1. Crea un **Google Form** con preguntas de texto corto correspondientes a: Nombre, Email/Teléfono, Asistencia, Acompañante, Nombre acompañante, Número de niños, Detalle niños, Alergias, Autobús, Nivel fiesta, Canción DJ, Mensaje e Intentos botón No.
 2. En el menú `⋮` del formulario, pulsa **Obtener enlace prellenado**, rellena un ejemplo en cada campo y copia el enlace generado.
 3. De ese enlace verás:
    - La URL base del formulario (cambia `/viewform` por `/formResponse`).

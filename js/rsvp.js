@@ -6,7 +6,7 @@
 
 (function () {
   var STORAGE_KEY = 'boda_rsvp_v1';
-  var TOTAL_STEPS = 9;
+  var TOTAL_STEPS = 8;
   var cfg = null;
 
   var noAttempts = 0;
@@ -19,8 +19,6 @@
   var petTerrierIdx = 0;
   var nameDebounceTimer = null;
 
-  var selectedMenu = '';
-  var selectedPlusOneMenu = '';
   var hasPlusOne = false;
   var hasChildren = false;
   var childrenData = [];
@@ -291,51 +289,34 @@
   }
 
   function moodForStep(step) {
-    if (step === 4 || step === 5) return 'food';
-    if (step >= 6 && step <= 8) return 'party';
-    if (step === 9) return 'celebrate';
+    if (step === 4) return 'food';
+    if (step >= 5 && step <= 7) return 'party';
+    if (step === 8) return 'celebrate';
     return 'welcome';
   }
 
   function positionsForStep(step) {
     var map = {
-      1: [3, 77],
+      1: [5, 75],
       2: [15, 64],
-      3: [6, 74],
-      4: [17, 62],
-      5: [4, 75],
-      6: [16, 63],
-      7: [18, 61],
-      8: [6, 73],
-      9: [16, 63]
+      3: [7, 73],
+      4: [14, 66],
+      5: [16, 63],
+      6: [18, 61],
+      7: [7, 73],
+      8: [16, 63]
     };
-    return map[step] || [5, 75];
+    return map[step] || [6, 74];
   }
 
   function formatChildrenSummary(list) {
     if (!list || !list.length) return '';
     return list
       .map(function (c) {
-        var ageTxt = c.age !== '' && c.age !== null && c.age !== undefined ? c.age + ' años' : 'edad s/i';
-        return (c.name || 'Peque') + ' (' + ageTxt + ', ' + (c.menu || 'Menú Peque-VIP') + ')';
+        var ageTxt = c.age !== '' && c.age !== null && c.age !== undefined ? c.age + ' años' : '';
+        return (c.name || 'Peque') + (ageTxt ? ' (' + ageTxt + ')' : '');
       })
       .join('; ');
-  }
-
-  function updateChildrenMenuSummary() {
-    var summaryEl = document.getElementById('children-menu-summary');
-    if (!summaryEl) return;
-    if (hasChildren && childrenData.length > 0) {
-      summaryEl.classList.remove('is-hidden');
-      summaryEl.textContent =
-        '👶 Menús infantiles ya apuntados (' +
-        childrenData.length +
-        '): ' +
-        formatChildrenSummary(childrenData);
-    } else {
-      summaryEl.classList.add('is-hidden');
-      summaryEl.textContent = '';
-    }
   }
 
   function renderWizardStep(step) {
@@ -354,10 +335,6 @@
     btnNext.classList.toggle('is-hidden', currentStep === TOTAL_STEPS);
     btnSubmitYes.classList.toggle('is-hidden', currentStep !== TOTAL_STEPS);
 
-    if (currentStep === 4) {
-      updateChildrenMenuSummary();
-    }
-
     var banter = (cfg.rsvp.dogs && cfg.rsvp.dogs.stepBanter && cfg.rsvp.dogs.stepBanter[currentStep]) || {};
     var pos = positionsForStep(currentStep);
     var mood = moodForStep(currentStep);
@@ -366,8 +343,8 @@
       mood: mood,
       huskyX: pos[0],
       terrierX: pos[1],
-      jump: currentStep === 9,
-      wave: currentStep === 1 || currentStep === 9,
+      jump: currentStep === TOTAL_STEPS,
+      wave: currentStep === 1 || currentStep === TOTAL_STEPS,
       huskyText: banter.husky,
       terrierText: banter.terrier
     });
@@ -411,7 +388,7 @@
           mood: 'welcome',
           jump: true,
           huskyText: '¡Nos falta el nombre de algún peque!',
-          terrierText: 'Así les reservamos sitio especial y menú infantil.'
+          terrierText: 'Así les reservamos su sitio especial.'
         });
         return false;
       }
@@ -431,15 +408,14 @@
       var names = childrenData.map(function (c) { return c.name.trim(); }).join(', ');
       return (childrenData.length === 1 ? '1 niño: ' : childrenData.length + ' niños: ') + names;
     }
-    if (step === 4) return selectedMenu;
-    if (step === 5) return document.getElementById('guest-allergies').value.trim() || 'Sin alergias';
-    if (step === 6) return document.getElementById('bus-needed').checked ? 'Con autobús 🚌' : 'En coche';
-    if (step === 7) {
+    if (step === 4) return document.getElementById('guest-allergies').value.trim() || 'Sin alergias';
+    if (step === 5) return document.getElementById('bus-needed').checked ? 'Con autobús 🚌' : 'En coche';
+    if (step === 6) {
       var sliderVal = parseInt(document.getElementById('party-slider').value, 10) || 3;
       var lv = (cfg.rsvp.partyLevels || []).find(function (l) { return l.level === sliderVal; });
       return lv ? lv.emoji + ' ' + lv.title : 'Fiesta ' + sliderVal;
     }
-    if (step === 8) return document.getElementById('dj-song').value.trim() || 'Sorpresa DJ 🎶';
+    if (step === 7) return document.getElementById('dj-song').value.trim() || 'Sorpresa DJ 🎶';
     return '¡Listo!';
   }
 
@@ -560,49 +536,7 @@
     }
   }
 
-  function renderMenuGrid(container, onSelect) {
-    var options = cfg.rsvp.menuOptions || [];
-    container.innerHTML = '';
-    options.forEach(function (opt, idx) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'menu-card' + (idx === 0 ? ' is-selected' : '');
-      btn.setAttribute('data-menu-label', opt.label);
-      btn.innerHTML =
-        (opt.emoji ? '<span class="menu-emoji">' + opt.emoji + '</span>' : '') +
-        '<span><strong>' + opt.label + '</strong><small>' + opt.detail + '</small></span>';
-      btn.addEventListener('click', function () {
-        container.querySelectorAll('.menu-card').forEach(function (c) {
-          c.classList.remove('is-selected');
-        });
-        btn.classList.add('is-selected');
-        onSelect(opt.label);
-        choreograph({
-          mood: 'food',
-          huskyX: 12,
-          terrierX: 68,
-          jump: true,
-          huskyText: '¡«' + opt.label + '» suena espectacular!',
-          terrierText: 'Si sobra un poquito... ya sabes dónde encontrarnos.'
-        });
-      });
-      container.appendChild(btn);
-    });
-    if (options.length > 0) {
-      onSelect(options[0].label);
-    }
-  }
-
   function setupInteractiveFormControls() {
-    var menuGrid = document.getElementById('menu-grid');
-    var plusMenuGrid = document.getElementById('plus-one-menu-grid');
-    renderMenuGrid(menuGrid, function (val) {
-      selectedMenu = val;
-    });
-    renderMenuGrid(plusMenuGrid, function (val) {
-      selectedPlusOneMenu = val;
-    });
-
     var guestNameInput = document.getElementById('guest-name');
     var guestEmailInput = document.getElementById('guest-email');
     if (guestNameInput) {
@@ -639,14 +573,12 @@
     var btnPlusNo = document.getElementById('plus-one-no');
     var btnPlusYes = document.getElementById('plus-one-yes');
     var plusDrawer = document.getElementById('plus-one-drawer');
-    var plusMenuWrap = document.getElementById('plus-one-menu-wrap');
 
     function setPlusOne(active) {
       hasPlusOne = active;
       btnPlusNo.classList.toggle('is-active', !active);
       btnPlusYes.classList.toggle('is-active', active);
       plusDrawer.classList.toggle('is-hidden', !active);
-      plusMenuWrap.classList.toggle('is-hidden', !active);
       choreograph({
         mood: active ? 'celebrate' : 'welcome',
         huskyX: active ? 15 : 8,
@@ -694,11 +626,6 @@
           '<div class="child-row-fields">' +
             '<input type="text" class="js-child-name" data-idx="' + idx + '" placeholder="Nombre del peque *" value="' + (child.name || '').replace(/"/g, '&quot;') + '">' +
             '<input type="number" class="js-child-age" data-idx="' + idx + '" min="0" max="17" placeholder="Edad" value="' + (child.age !== undefined && child.age !== null ? String(child.age) : '') + '">' +
-            '<select class="js-child-menu" data-idx="' + idx + '" aria-label="Menú del niño">' +
-              '<option value="Menú Peque-VIP"' + (child.menu === 'Menú Peque-VIP' ? ' selected' : '') + '>Menú Peque-VIP (infantil)</option>' +
-              '<option value="Menú adulto"' + (child.menu === 'Menú adulto' ? ' selected' : '') + '>Menú adulto</option>' +
-              '<option value="Bebé / Sin menú (trona)"' + (child.menu === 'Bebé / Sin menú (trona)' ? ' selected' : '') + '>Bebé / Sin menú (trona)</option>' +
-            '</select>' +
           '</div>';
         childListEl.appendChild(row);
       });
@@ -715,12 +642,6 @@
           if (childrenData[i]) childrenData[i].age = inp.value;
         });
       });
-      childListEl.querySelectorAll('.js-child-menu').forEach(function (sel) {
-        sel.addEventListener('change', function () {
-          var i = parseInt(sel.getAttribute('data-idx'), 10);
-          if (childrenData[i]) childrenData[i].menu = sel.value;
-        });
-      });
       childListEl.querySelectorAll('.child-remove-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
           var i = parseInt(btn.getAttribute('data-remove-idx'), 10);
@@ -733,7 +654,7 @@
     function setChildrenCount(nextCount) {
       var target = Math.max(1, Math.min(8, nextCount));
       while (childrenData.length < target) {
-        childrenData.push({ name: '', age: '', menu: 'Menú Peque-VIP' });
+        childrenData.push({ name: '', age: '' });
       }
       while (childrenData.length > target) {
         childrenData.pop();
@@ -759,7 +680,7 @@
       if (childDrawer) childDrawer.classList.toggle('is-hidden', !active);
       if (active) {
         if (childrenData.length === 0) {
-          childrenData.push({ name: '', age: '', menu: 'Menú Peque-VIP' });
+          childrenData.push({ name: '', age: '' });
         }
         renderChildrenRows();
         choreograph({
@@ -769,7 +690,7 @@
           jump: true,
           wave: true,
           huskyText: '¡Qué alegría! Los peques son más que bienvenidos.',
-          terrierText: 'Añade sus nombres y edades para prepararles menú o trona.'
+          terrierText: 'Añade sus nombres y edades para reservarles sitio o trona.'
         });
       } else {
         childrenData = [];
@@ -889,7 +810,7 @@
         partyDesc.textContent = match.description;
       }
 
-      if (userTriggered && currentStep === 7) {
+      if (userTriggered && currentStep === 6) {
         var partyBanter = (cfg.rsvp.dogs && cfg.rsvp.dogs.partyBanter && cfg.rsvp.dogs.partyBanter[val]) || {};
         choreograph({
           mood: val >= 3 ? 'dance' : 'party',
@@ -1006,8 +927,6 @@
       if (map.plusOneName) fd.append(map.plusOneName, payload.plusOneName);
       if (map.childrenCount) fd.append(map.childrenCount, String(payload.childrenCount || 0));
       if (map.childrenDetails) fd.append(map.childrenDetails, payload.childrenDetails || '');
-      if (map.menu) fd.append(map.menu, payload.menu);
-      if (map.plusOneMenu) fd.append(map.plusOneMenu, payload.plusOneMenu);
       if (map.allergies) fd.append(map.allergies, payload.allergies);
       if (map.bus) fd.append(map.bus, payload.bus ? 'Sí' : 'No');
       if (map.partyLevel) fd.append(map.partyLevel, payload.partyLabel);
@@ -1059,6 +978,17 @@
     return clean + '-' + num + '-27';
   }
 
+  function buildGuestsSummary(data) {
+    var adults = 1 + (data.hasPlusOne ? 1 : 0);
+    var kids = data.childrenCount || 0;
+    var parts = [adults + (adults === 1 ? ' adulto' : ' adultos')];
+    if (kids > 0) {
+      parts.push(kids + (kids === 1 ? ' peque' : ' peques'));
+    }
+    parts.push(data.bus ? 'Con bus 🚌' : 'Por libre');
+    return parts.join(' · ');
+  }
+
   function renderVipPass(data) {
     lastSubmitted = data;
     var isYes = data.attendance === 'Sí';
@@ -1087,8 +1017,10 @@
     document.getElementById('btn-download-vip').classList.toggle('is-hidden', !isYes);
 
     if (isYes) {
-      document.getElementById('vip-menu-value').textContent =
-        data.menu + (data.hasPlusOne && data.plusOneMenu ? ' / ' + data.plusOneMenu : '');
+      var guestsValEl = document.getElementById('vip-guests-value');
+      if (guestsValEl) {
+        guestsValEl.textContent = buildGuestsSummary(data);
+      }
       document.getElementById('vip-party-value').textContent = data.partyLabel || '—';
       document.getElementById('vip-song-value').textContent = data.song || 'Sorpresa del DJ';
       document.getElementById('vip-code-value').textContent = data.passCode || 'MF-2027';
@@ -1136,8 +1068,7 @@
             .map(function (c) {
               return {
                 name: c.name.trim(),
-                age: c.age !== undefined && c.age !== null ? String(c.age).trim() : '',
-                menu: c.menu || 'Menú Peque-VIP'
+                age: c.age !== undefined && c.age !== null ? String(c.age).trim() : ''
               };
             })
         : [];
@@ -1147,19 +1078,19 @@
         return l.level === sliderVal;
       });
       var partyLabel = levelObj ? levelObj.emoji + ' ' + levelObj.title : String(sliderVal);
+      var totalGuests = 1 + (hasPlusOne ? 1 : 0) + cleanChildren.length;
 
       var payload = {
         timestamp: new Date().toISOString(),
         name: name,
         email: email,
         attendance: 'Sí',
+        totalGuests: totalGuests,
         hasPlusOne: hasPlusOne,
         plusOneName: hasPlusOne ? plusOneName : '',
         childrenCount: cleanChildren.length,
         children: cleanChildren,
         childrenDetails: formatChildrenSummary(cleanChildren),
-        menu: selectedMenu,
-        plusOneMenu: hasPlusOne ? selectedPlusOneMenu : '',
         allergies: document.getElementById('guest-allergies').value.trim() || 'Ninguna',
         bus: document.getElementById('bus-needed').checked,
         partyLevel: sliderVal,
@@ -1211,13 +1142,12 @@
         name: name,
         email: email,
         attendance: 'No',
+        totalGuests: 0,
         hasPlusOne: false,
         plusOneName: '',
         childrenCount: 0,
         children: [],
         childrenDetails: '',
-        menu: '',
-        plusOneMenu: '',
         allergies: '',
         bus: false,
         partyLevel: 0,
@@ -1339,7 +1269,7 @@
     ctx.setLineDash([]);
 
     var fields = [
-      { label: 'MENÚ ELEGIDO', value: lastSubmitted.menu || '—', x: 78, y: 375 },
+      { label: 'PLAZAS Y TRANSPORTE', value: buildGuestsSummary(lastSubmitted), x: 78, y: 375 },
       { label: 'NIVEL BARRA LIBRE', value: lastSubmitted.partyLabel || '—', x: 560, y: 375 },
       { label: 'PETICIÓN AL DJ', value: lastSubmitted.song || 'Sorpresa del DJ', x: 78, y: 475 },
       { label: 'CÓDIGO DE PASE', value: lastSubmitted.passCode || 'MF-2027', x: 560, y: 475 }

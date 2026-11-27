@@ -732,14 +732,14 @@
       hoverBoost += (targetHover - hoverBoost) * Math.min(1, dt * 10);
 
       if (isAutoPlaying) {
-        // Duración total del tirón + desanudado + deslizamiento (~1.62s; rápido si reducedMotion)
-        var speed = reducedMotion ? 3.2 : 0.62;
-        // Ligera aceleración orgánica una vez que el nudo cede (progress > 0.50)
-        var phaseBoost = progress > 0.50 ? 1.22 : 1.0;
+        // Duración pausada y apreciable del tirón + desanudado + deslizamiento (~2.05s en PC y móvil)
+        var speed = 0.46;
+        // Ligera aceleración orgánica una vez que el nudo cede (progress > 0.55)
+        var phaseBoost = progress > 0.55 ? 1.12 : 1.0;
         progress = Math.min(1.0, progress + dt * speed * phaseBoost);
       }
 
-      if (!hasFiredUntied && progress >= 0.86) {
+      if (!hasFiredUntied && progress >= 0.90) {
         hasFiredUntied = true;
         if (typeof onUntied === 'function') {
           onUntied();
@@ -801,11 +801,12 @@
         var dy = e.clientY - dragStartY;
         // Proyección sobre el vector diagonal de tirón del extremo derecho (+0.78, +0.62) o distancia general
         var pullDist = Math.max(dx * 0.75 + dy * 0.66, Math.hypot(dx, dy) * 0.55);
-        if (pullDist > 6) {
+        // Umbral de 16px para que un toque táctil normal en iPhone no adelante el progreso bruscamente
+        if (pullDist > 16) {
           notifyStarted();
-          progress = clamp(dragBaseProgress + pullDist / Math.max(140, W * 0.36), 0, 0.98);
-          if (progress >= 0.46) {
-            // En cuanto la lazada derecha pasa por el nudo, el lazo termina de soltarse solo
+          progress = clamp(dragBaseProgress + (pullDist - 16) / Math.max(190, W * 0.46), 0, 0.98);
+          if (progress >= 0.52) {
+            // En cuanto la lazada derecha pasa por el nudo, el lazo termina de soltarse suavemente
             triggerUntie();
           }
         }

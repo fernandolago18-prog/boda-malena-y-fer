@@ -226,8 +226,8 @@ a {
 /* Animación Reveal al hacer scroll */
 .reveal-on-scroll {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.95s cubic-bezier(0.22, 1, 0.36, 1), transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(22px);
+  transition: opacity 1.1s cubic-bezier(0.22, 1, 0.36, 1), transform 1.1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reveal-on-scroll.is-visible {
@@ -460,7 +460,7 @@ a {
   transform-style: preserve-3d;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  transition: transform 0.95s cubic-bezier(0.35, 0, 0.2, 1);
+  transition: transform 1.15s cubic-bezier(0.35, 0, 0.2, 1);
   pointer-events: none;
   will-change: transform;
 }
@@ -591,7 +591,7 @@ a {
 }
 
 .intro-overlay.is-unsealing .wax-seal {
-  animation: liftWaxSealOff 0.52s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+  animation: liftWaxSealOff 0.78s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
   pointer-events: none;
 }
 
@@ -622,7 +622,7 @@ a {
 }
 
 .intro-overlay.is-extracting .envelope-letter {
-  animation: pullInvitationOut 1.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: pullInvitationOut 1.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes pullInvitationOut {
@@ -1179,7 +1179,7 @@ a {
   width: 100%;
   height: 0%;
   background: linear-gradient(180deg, var(--gold-champagne), var(--olive-mid));
-  transition: height 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .timeline-list {
@@ -1847,8 +1847,8 @@ a {
   user-select: none;
   touch-action: manipulation;
   transition:
-    left 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-    top 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    left 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+    top 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
     background-color 0.2s ease,
     color 0.2s ease;
 }
@@ -2283,7 +2283,7 @@ a {
 
 .wizard-screen.is-active {
   display: flex;
-  animation: wizardScreenIn 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: wizardScreenIn 0.48s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes wizardScreenIn {
@@ -2452,7 +2452,7 @@ a {
 
 .child-row-fields {
   display: grid;
-  grid-template-columns: 1.35fr 0.75fr 1.25fr;
+  grid-template-columns: 1.7fr 0.8fr;
   gap: 0.65rem;
 }
 
@@ -2513,8 +2513,8 @@ a {
 .dogs-roaming-stage.is-docked {
   position: relative;
   inset: auto;
-  width: min(720px, calc(100% - 24px));
-  height: 286px;
+  width: min(720px, calc(100% - 16px));
+  height: 292px;
   margin: 1.25rem auto 0;
   overflow: visible;
   z-index: 10;
@@ -2578,9 +2578,9 @@ a {
 
 .dog-comic-bubble {
   position: relative;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   width: max-content;
-  max-width: 100%;
+  max-width: 224px;
   padding: 0.56rem 0.78rem;
   border-radius: 16px;
   background: rgba(255, 253, 249, 0.97);
@@ -2592,8 +2592,13 @@ a {
   text-align: center;
   overflow-wrap: break-word;
   box-shadow: 0 12px 28px rgba(35, 32, 28, 0.18);
-  animation: bubblePop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translate3d(var(--bubble-shift, 0px), 0, 0);
+  animation: bubblePop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: auto;
+}
+
+.dogs-roaming-stage.is-docked .dog-comic-bubble {
+  max-width: min(230px, calc(46vw - 8px));
 }
 
 .dog-comic-bubble--husky {
@@ -2608,7 +2613,8 @@ a {
   content: '';
   position: absolute;
   bottom: -7px;
-  left: 50%;
+  left: var(--tail-x, 50%);
+  right: auto;
   width: 12px;
   height: 12px;
   background: rgba(255, 253, 249, 0.97);
@@ -2619,8 +2625,14 @@ a {
 }
 
 @keyframes bubblePop {
-  from { opacity: 0; transform: scale(0.82) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: translate3d(var(--bubble-shift, 0px), 8px, 0) scale(0.84);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(var(--bubble-shift, 0px), 0, 0) scale(1);
+  }
 }
 
 /* Banner flotante mientras ambos perros galopan llevando la respuesta en la boca */
@@ -2921,8 +2933,9 @@ a {
 }
 
 @media (max-width: 768px) {
+  /* Pista más larga en táctil para compensar la inercia del dedo en iOS/Android y apreciar cada escena */
   .cinema-track {
-    height: 420vh;
+    height: 740vh;
   }
 
   .cinema-hud {
@@ -2984,9 +2997,12 @@ a {
   .menu-grid,
   .vip-details-grid,
   .segmented-control,
-  .bus-choice-grid,
-  .child-row-fields {
+  .bus-choice-grid {
     grid-template-columns: 1fr;
+  }
+
+  .child-row-fields {
+    grid-template-columns: 1fr 92px;
   }
 
   .rsvp-arena,
@@ -2996,8 +3012,8 @@ a {
   }
 
   .dogs-roaming-stage.is-docked {
-    height: 204px;
-    margin-top: 0.55rem;
+    height: 238px;
+    margin-top: 0.75rem;
   }
 
   .dogs-roaming-stage.is-docked .dog-actor {
@@ -3016,34 +3032,15 @@ a {
 
   .dogs-roaming-stage.is-docked .dog-comic-bubble {
     width: max-content;
-    max-width: min(168px, 43vw);
-    font-size: 0.71rem;
-    padding: 0.42rem 0.6rem;
-  }
-
-  /* Mantiene cada bocadillo hacia su lado para evitar que se monten en el centro en móviles */
-  .dogs-roaming-stage.is-docked .dog-comic-bubble--husky {
-    align-self: flex-end;
-  }
-
-  .dogs-roaming-stage.is-docked .dog-comic-bubble--husky::after {
-    left: auto;
-    right: 50px;
-    transform: rotate(45deg);
-  }
-
-  .dogs-roaming-stage.is-docked .dog-comic-bubble--terrier {
-    align-self: flex-start;
-  }
-
-  .dogs-roaming-stage.is-docked .dog-comic-bubble--terrier::after {
-    left: 50px;
-    transform: rotate(45deg);
+    max-width: min(174px, calc(46vw - 6px));
+    font-size: 0.73rem;
+    line-height: 1.34;
+    padding: 0.45rem 0.62rem;
   }
 
   .dog-comic-bubble {
-    font-size: 0.72rem;
-    padding: 0.42rem 0.6rem;
+    font-size: 0.73rem;
+    padding: 0.45rem 0.62rem;
   }
 
   .rsvp-section {
@@ -3293,10 +3290,10 @@ a {
     font-size: 1.02rem;
   }
 
-  /* Revelado más corto y ligero en móvil */
+  /* Revelado suave y apreciable en pantallas de alta tasa de refresco (120Hz ProMotion) */
   .reveal-on-scroll {
-    transform: translateY(12px);
-    transition-duration: 0.75s;
+    transform: translateY(24px);
+    transition-duration: 1.15s;
   }
 
   .rsvp-section {
@@ -3319,13 +3316,5 @@ a {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }

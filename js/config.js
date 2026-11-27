@@ -28,7 +28,7 @@ window.BODA_CONFIG = {
 
   envelope: {
     // Segundos que la invitación permanece completamente fuera del sobre para leerla con calma
-    readDurationSeconds: 4.5,
+    readDurationSeconds: 5.0,
     invitationTagline: 'Con toda la ilusión del mundo, os invitamos a celebrar nuestra boda.'
   },
 
@@ -357,29 +357,25 @@ window.BODA_CONFIG = {
         },
         3: {
           husky: '¿Viene algún peque en vuestro equipo?',
-          terrier: '¡Tenemos menús infantiles, tronas y mucho jardín para jugar!'
+          terrier: '¡Tendremos tronas preparadas y mucho jardín para jugar!'
         },
         4: {
-          husky: '¡Hora de comer! Elige tu plato favorito.',
-          terrier: 'Prometo no mirar tu plato con ojitos... mucho.'
-        },
-        5: {
           husky: '¿Alguna alergia o intolerancia que debamos cuidar?',
           terrier: '¡En cocina lo apuntan todo al milímetro!'
         },
-        6: {
+        5: {
           husky: '¿Subes al autobús para olvidarte del coche?',
           terrier: '¡Yo me pido ventanilla en el viaje de vuelta!'
         },
-        7: {
+        6: {
           husky: 'Mueve el deslizador de la Barra Libre sin miedo.',
           terrier: '¡Queremos ver quién aguanta hasta los churros!'
         },
-        8: {
+        7: {
           husky: '¿Qué temazo te levanta de la silla al instante?',
           terrier: '¡Se lo llevo en la boca al DJ ahora mismo!'
         },
-        9: {
+        8: {
           husky: 'Último paso: déjales un mensaje a Malena y Fer.',
           terrier: '¡En cuanto pulses confirmar sacamos tu Pase VIP!'
         }
@@ -411,8 +407,7 @@ window.BODA_CONFIG = {
       courierMessages: [
         '¡Atrapada! Se la llevamos corriendo en la boca a Malena y Fer...',
         'Guardando tu respuesta a buen recaudo entre ladridos de alegría...',
-        '¡Anotando al equipo completo de peques y tronas!',
-        '¡Directa en la boca hacia la mesa del chef de la finca!',
+        '¡Anotando al equipo completo de invitados y peques!',
         '¡Oído cocina! Corriendo a avisar al catering...',
         '¡A toda pastilla a reservar plaza en el autobús!',
         '¡Auuu! Corriendo a la cabina del DJ con tu nivel de fiesta...',
@@ -453,8 +448,6 @@ window.BODA_CONFIG = {
         plusOneName: 'entry.1000005',
         childrenCount: 'entry.1000014',
         childrenDetails: 'entry.1000015',
-        menu: 'entry.1000006',
-        plusOneMenu: 'entry.1000007',
         allergies: 'entry.1000008',
         bus: 'entry.1000009',
         partyLevel: 'entry.1000010',
@@ -468,29 +461,6 @@ window.BODA_CONFIG = {
     appsScript: {
       webAppUrl: '' // Ej: 'https://script.google.com/macros/s/TU_DEPLOYMENT_ID/exec'
     },
-
-    menuOptions: [
-      {
-        id: 'carne',
-        label: 'Solomillo a la brasa',
-        detail: 'Con milojas de patata trufada y reducción de vino de la tierra'
-      },
-      {
-        id: 'pescado',
-        label: 'Lubina salvaje al horno',
-        detail: 'Con crema suave de hinojo, espárragos trigueros y aceite de oliva'
-      },
-      {
-        id: 'vegano',
-        label: 'Menú Botánico (Vegano)',
-        detail: 'Canelón asado de setas silvestres, piñones tostados y crema de almendra'
-      },
-      {
-        id: 'infantil',
-        label: 'Menú Peque-VIP',
-        detail: 'Pasta fresca o escalope casero con patatas y helado artesanal'
-      }
-    ],
 
     allergyPresets: [
       'Sin gluten',
